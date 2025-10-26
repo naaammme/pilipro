@@ -26,7 +26,8 @@ try {
         throw 'version not found'
     }
 
-    $updatedContent | Out-File -FilePath 'pubspec.yaml' -Encoding UTF8 -NoNewline
+    # Use .NET to write UTF8 without BOM
+    [System.IO.File]::WriteAllLines((Join-Path $PWD 'pubspec.yaml'), $updatedContent, (New-Object System.Text.UTF8Encoding $false))
 
     $buildTime = [int]([DateTimeOffset]::Now.ToUnixTimeSeconds())
 
