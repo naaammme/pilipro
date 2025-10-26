@@ -1,0 +1,10 @@
+PiliPlus is a third-party Bilibili client developed in Flutter, 
+fork from PiliPalaX (https://github.com/orz12/PiliPalaX).
+
+Top Features:
+
+* List of recommended videos
+* List of hottest videos
+* Popular live streams
+* List of bangumis
+* Block videos from blacklisted users

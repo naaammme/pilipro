@@ -1,0 +1,1 @@
+enum ReplySearchType { video, article }
