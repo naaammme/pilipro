@@ -26,7 +26,7 @@ try {
         throw 'version not found'
     }
 
-    $updatedContent | Set-Content -Path 'pubspec.yaml' -Encoding UTF8
+    $updatedContent | Out-File -FilePath 'pubspec.yaml' -Encoding UTF8 -NoNewline
 
     $buildTime = [int]([DateTimeOffset]::Now.ToUnixTimeSeconds())
 
