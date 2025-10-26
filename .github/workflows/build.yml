@@ -136,15 +136,39 @@ jobs:
             - name: flutter build apk
               run: flutter build apk --release --split-per-abi --dart-define-from-file=pili_release.json
 
+            - name: Find APK files
+              run: |
+                  echo "Searching for APK files..."
+                  find . -name "*.apk" -type f
+                  echo "---"
+                  echo "Checking build directory:"
+                  ls -la build/app/outputs/flutter-apk/ || echo "build/app/outputs/flutter-apk/ not found"
+                  echo "Checking android/build directory:"
+                  ls -la android/build/app/outputs/flutter-apk/ || echo "android/build/app/outputs/flutter-apk/ not found"
+
             - name: rename
               run: |
-                  for file in build/app/outputs/flutter-apk/app-*-release.apk; do
+                  # Try both possible locations
+                  APK_DIR=""
+                  if [ -d "build/app/outputs/flutter-apk" ]; then
+                    APK_DIR="build/app/outputs/flutter-apk"
+                  elif [ -d "android/build/app/outputs/flutter-apk" ]; then
+                    APK_DIR="android/build/app/outputs/flutter-apk"
+                  else
+                    echo "❌ APK directory not found!"
+                    exit 1
+                  fi
+
+                  echo "Found APK directory: $APK_DIR"
+
+                  for file in $APK_DIR/app-*-release.apk; do
                     if [ -f "$file" ]; then
                       abi=$(echo "$file" | sed -E 's|.*app-(.*)-release\.apk|\1|')
                       mv "$file" "PiliPro_android_${{ env.version }}_${abi}.apk"
-                      echo " Renamed: $(basename $file) -> PiliPro_android_${{ env.version }}_${abi}.apk"
+                      echo "✓ Renamed: $(basename $file) -> PiliPro_android_${{ env.version }}_${abi}.apk"
                     fi
                   done
+
                   ls -lh PiliPro_android_*.apk || echo "❌ No APK files found!"
               shell: bash
 
