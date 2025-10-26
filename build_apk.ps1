@@ -6,8 +6,7 @@ Write-Host ""
 
 # Get version info
 Write-Host "[1/5] Reading version info..." -ForegroundColor Yellow
-$pubspecContent = Get-Content "pubspec.yaml" -Raw
-$versionLine = ($pubspecContent -split "`n" | Where-Object { $_ -match "^version:" })[0]
+$versionLine = Get-Content "pubspec.yaml" | Where-Object { $_ -match "^\s*version:" } | Select-Object -First 1
 $VERSION = ($versionLine -split ':')[1].Trim() -replace '\+.*', ''
 $BUILD_FROM_YAML = ($versionLine -split '\+')[1].Trim()
 

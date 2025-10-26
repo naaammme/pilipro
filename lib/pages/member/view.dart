@@ -327,7 +327,9 @@ class _MemberPageState extends State<MemberPage> {
       case Loading():
         return const CircularProgressIndicator();
       case Success<SpaceData?>(:var response):
-        if (response != null) {
+        // 即使 response 或其字段为 null/默认值,也显示完整卡片
+        // 因为即使用户已注销,关注数/粉丝数/获赞数等数据仍可正常请求
+        if (response != null && response.card != null && response.images != null) {
           return DynamicSliverAppBarMedium(
             pinned: true,
             actions: _actions(theme),
@@ -346,6 +348,7 @@ class _MemberPageState extends State<MemberPage> {
             ),
           );
         }
+        // 只有在数据完全不可用时才显示简单的 AppBar
         return SliverAppBar(
           pinned: true,
           actions: _actions(theme),

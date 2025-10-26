@@ -24,13 +24,15 @@ class MemberBangumiCtr
   void onInit() {
     super.onInit();
     SpaceData? response = _ctr.loadingState.value.data;
-    if (response != null) {
+    // 检查 response 和 season 字段是否都存在
+    if (response != null && response.season != null) {
       page = 2;
       var res = response.season!;
       loadingState.value = Success(res.item);
       count = res.count!;
       isEnd = res.item!.length >= count!;
     } else {
+      // 如果 response 为 null 或 season 不存在,则独立请求数据
       queryData();
     }
   }

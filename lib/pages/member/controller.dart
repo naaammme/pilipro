@@ -5,8 +5,13 @@ import 'package:PiliPro/http/member.dart';
 import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/http/video.dart';
 import 'package:PiliPro/models/common/member/tab_type.dart';
+import 'package:PiliPro/models/model_avatar.dart';
+import 'package:PiliPro/models_new/space/space/card.dart';
 import 'package:PiliPro/models_new/space/space/data.dart';
+import 'package:PiliPro/models_new/space/space/images.dart';
+import 'package:PiliPro/models_new/space/space/level_info.dart';
 import 'package:PiliPro/models_new/space/space/live.dart';
+import 'package:PiliPro/models_new/space/space/official_verify.dart';
 import 'package:PiliPro/models_new/space/space/setting.dart';
 import 'package:PiliPro/models_new/space/space/tab2.dart';
 import 'package:PiliPro/pages/common/common_data_controller.dart';
@@ -114,6 +119,7 @@ class MemberController extends CommonDataController<SpaceData, SpaceData?>
 
   @override
   bool handleError(String? errMsg) {
+    // 创建默认的 tab2
     tab2 = const [
       SpaceTab2(title: '动态', param: 'dynamic'),
       SpaceTab2(
@@ -130,9 +136,57 @@ class MemberController extends CommonDataController<SpaceData, SpaceData?>
       vsync: this,
       length: tabs.length,
     );
-    username = errMsg;
-    loadingState.value = const Success(null);
+    username = errMsg ?? '啥都木有';
+
+    // 即使主接口失败(如用户已注销),仍然尝试获取用户统计数据
+    // 因为粉丝数/关注数/获赞数等数据可以从 memberStat 接口正常获取
+    _fetchUserStatAndCreateDefaultData();
     return true;
+  }
+
+  Future<void> _fetchUserStatAndCreateDefaultData() async {
+    int fans = 0;
+    int attention = 0;
+    int archiveCount = 0;
+
+    // 尝试获取用户统计数据
+    try {
+      final statResult = await MemberHttp.memberStat(mid: mid);
+      if (statResult['status'] == true && statResult['data'] != null) {
+        final statData = statResult['data'];
+        fans = statData['follower'] ?? 0;
+        attention = statData['following'] ?? 0;
+        archiveCount = statData['archive_count'] ?? 0;
+      }
+    } catch (e) {
+      // 如果获取失败,使用默认值 0
+    }
+
+    // 创建包含真实统计数据的用户卡片
+    final defaultSpaceData = SpaceData(
+      card: SpaceCard(
+        mid: mid.toString(),
+        name: username,
+        face: '', // 默认头像将由前端处理
+        sign: '', // 默认签名为空
+        fans: fans, // 使用真实的粉丝数
+        attention: attention, // 使用真实的关注数
+        friend: 0,
+        article: archiveCount,
+        // 添加必要的字段避免空指针异常
+        levelInfo: LevelInfo(currentLevel: 0),
+        pendant: Pendant.fromJson({'pid': 0, 'name': '', 'image': ''}),
+        vip: Vip.fromJson({'status': 0}),
+        officialVerify: OfficialVerify(type: -1),
+      ),
+      images: SpaceImages(),
+      tab2: tab2,
+      defaultTab: 'dynamic',
+      relation: 0,
+      // 不设置 season、archive 等字段,让各个 tab 独立请求数据
+    );
+
+    loadingState.value = Success(defaultSpaceData);
   }
 
   @override

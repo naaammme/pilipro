@@ -85,13 +85,22 @@ class UserInfoCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ColorScheme colorScheme, bool isLight) {
-    String imgUrl =
-        (isLight
-                ? images.imgUrl
-                : images.nightImgurl.isNullOrEmpty
-                ? images.imgUrl
-                : images.nightImgurl)
-            .http2https;
+    String? rawImgUrl = isLight
+        ? images.imgUrl
+        : images.nightImgurl.isNullOrEmpty
+            ? images.imgUrl
+            : images.nightImgurl;
+
+    // 如果背景图为空或无效,返回一个纯色背景
+    if (rawImgUrl.isNullOrEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 135,
+        color: colorScheme.surfaceContainerHighest,
+      );
+    }
+
+    String imgUrl = rawImgUrl!.http2https;
     return Hero(
       tag: imgUrl,
       child: GestureDetector(
@@ -469,11 +478,13 @@ class UserInfoCard extends StatelessWidget {
       badgeSize: 20,
       officialType: card.officialVerify?.type,
       isVip: (card.vip?.status ?? -1) > 0,
-      garbPendantImage: card.pendant!.image!,
+      garbPendantImage: card.pendant?.image ?? '',
       roomId: live?.liveStatus == 1 ? live!.roomid : null,
-      onTap: () => PageUtils.imageView(
-        imgList: [SourceModel(url: card.face.http2https)],
-      ),
+      onTap: card.face.isNullOrEmpty
+          ? null
+          : () => PageUtils.imageView(
+                imgList: [SourceModel(url: card.face.http2https)],
+              ),
     ),
   );
 
