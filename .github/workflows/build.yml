@@ -16,37 +16,6 @@ on:
                 required: false
                 default: true
                 type: boolean
-
-            build_ios:
-                description: "Build iOS"
-                required: false
-                default: true
-                type: boolean
-
-            build_mac:
-                description: "Build Mac"
-                required: false
-                default: true
-                type: boolean
-
-            build_win_x64:
-                description: "Build Win-x64"
-                required: false
-                default: true
-                type: boolean
-
-            build_linux_x64:
-                description: "Build Linux-x64"
-                required: false
-                default: true
-                type: boolean
-
-            build_linux_arm64:
-                description: "Build Linux-arm64"
-                required: false
-                default: true
-                type: boolean
-
             tag:
                 description: "tag"
                 required: false
@@ -59,32 +28,29 @@ jobs:
         name: Release Android
         runs-on: ubuntu-latest
         permissions: write-all
+        timeout-minutes: 60 
 
         steps:
             - name: 代码迁出
-              uses: actions/checkout@v5
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
             - name: 构建Java环境
-              uses: actions/setup-java@v5
+              uses: actions/setup-java@v4
               with:
                   distribution: "zulu"
                   java-version: "17"
                   cache: "gradle"
-                  cache-dependency-path: |
-                      android/*.gradle*
-                      android/**/gradle-wrapper.properties
 
             - name: 安装Flutter
               uses: subosito/flutter-action@v2
-              id: flutter-action
               with:
                   channel: stable
                   flutter-version-file: pubspec.yaml
                   cache: true
 
-            - name: apply bottom sheet patch
+            - name: Apply bottom sheet patch
               working-directory: ${{ env.FLUTTER_ROOT }}
               run: git apply $GITHUB_WORKSPACE/lib/scripts/bottom_sheet_patch.diff
               continue-on-error: true
@@ -100,20 +66,41 @@ jobs:
                     echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> android/key.properties
                   fi
 
-            - name: Set and Extract version
-              shell: pwsh
-              run: lib/scripts/build.ps1 android
-
-            - name: flutter build apk
-              run: flutter build apk --release --split-per-abi --dart-define-from-file=pili_release.json --pub
-
-            - name: rename
+            - name: Extract version from pubspec.yaml
+              id: version
               run: |
+                  VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+                  BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "build=$BUILD" >> $GITHUB_OUTPUT
+                  echo "Version: $VERSION, Build: $BUILD"
+
+            - name: Flutter doctor
+              run: flutter doctor -v
+
+            - name: Get dependencies
+              run: flutter pub get
+
+            - name: Clean build
+              run: flutter clean
+
+            - name: Flutter build apk
+              run: |
+                  flutter build apk --release \
+                    --split-per-abi \
+                    --dart-define-from-file=pili_release.json
+
+            - name: Rename APK files
+              run: |
+                  VERSION="${{ steps.version.outputs.version }}"
                   for file in build/app/outputs/flutter-apk/app-*-release.apk; do
-                    abi=$(echo "$file" | sed -E 's|.*app-(.*)-release\.apk|\1|')
-                    mv "$file" "PiliPlus_android_${{ env.version }}_${abi}.apk"
+                    if [ -f "$file" ]; then
+                      abi=$(echo "$file" | sed -E 's|.*app-(.*)-release\.apk|\1|')
+                      mv "$file" "PiliPro_android_${VERSION}_${abi}.apk"
+                      echo "Renamed: $file -> PiliPro_android_${VERSION}_${abi}.apk"
+                    fi
                   done
-              shell: bash
+                  ls -lh PiliPro_android_*.apk || echo "No APK files found!"
 
             - name: Release
               if: ${{ github.event.inputs.tag != '' }}
@@ -124,24 +111,23 @@ jobs:
                   files: |
                       PiliPro_android_*.apk
 
-            - name: 上传
+            - name: Upload arm64-v8a
               uses: actions/upload-artifact@v4
               with:
                   name: Android_arm64-v8a
-                  path: |
-                      PiliPro_android_*_arm64-v8a.apk
+                  path: PiliPro_android_*_arm64-v8a.apk
+                  if-no-files-found: error
 
-            - name: 上传
+            - name: Upload armeabi-v7a
               uses: actions/upload-artifact@v4
               with:
                   name: Android_armeabi-v7a
-                  path: |
-                      PiliPro_android_*_armeabi-v7a.apk
+                  path: PiliPro_android_*_armeabi-v7a.apk
+                  if-no-files-found: error
 
-            - name: 上传
+            - name: Upload x86_64
               uses: actions/upload-artifact@v4
               with:
                   name: Android_x86_64
-                  path: |
-                      PiliPro_android_*_x86_64.apk
-
+                  path: PiliPro_android_*_x86_64.apk
+                  if-no-files-found: warn
