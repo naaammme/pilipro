@@ -195,7 +195,7 @@ class _LiveRoomPageState extends State<LiveRoomPage>
     _liveRoomController
       ..isPlaying = true
       ..isInPipMode.value = true;
-    SmartDialog.showToast('设置 isInPipMode = true');
+    // SmartDialog.showToast('设置 isInPipMode = true');
     // 继续播放直播消息
     _liveRoomController.startLiveMsg();
 

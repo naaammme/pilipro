@@ -15,7 +15,9 @@ $BUILD = (git rev-list --count HEAD).Trim()
 $COMMIT_HASH = (git rev-parse --short HEAD).Trim()
 $COMMIT_HASH_FULL = (git rev-parse HEAD).Trim()
 $COMMIT_HASH_9 = $COMMIT_HASH_FULL.Substring(0, 9)
-$TIMESTAMP = [int][double]::Parse((Get-Date -UFormat %s))
+# Fix: Calculate Unix timestamp correctly by converting to UTC first
+$epoch = [DateTime]'1970-01-01 00:00:00'
+$TIMESTAMP = [int]((Get-Date).ToUniversalTime() - $epoch).TotalSeconds
 
 Write-Host "   Version: $VERSION" -ForegroundColor Green
 Write-Host "   Build: $BUILD" -ForegroundColor Green
