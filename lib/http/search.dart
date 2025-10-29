@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:PiliPro/http/api.dart';
 import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
-import 'package:PiliPro/http/ua_type.dart';
 import 'package:PiliPro/models/common/search/search_type.dart';
 import 'package:PiliPro/models/search/result.dart';
 import 'package:PiliPro/models/search/suggest.dart';
@@ -56,7 +55,6 @@ class SearchHttp {
     int? categoryId,
     int? pubBegin,
     int? pubEnd,
-    required String qvId,
     String? gaiaVtoken,
     required ValueChanged<String> onSuccess,
   }) async {
@@ -72,16 +70,8 @@ class SearchHttp {
       'category_id': ?categoryId,
       'pubtime_begin_s': ?pubBegin,
       'pubtime_end_s': ?pubEnd,
-      // 'ad_resource': 5654,
-      '__refresh__': true,
-      '_extra': '',
-      'context': '',
       'page_size': 20,
-      'from_source': '',
-      'from_spmid': 333.337,
       'platform': 'pc',
-      'source_tag': 3,
-      'qv_id': qvId,
       'web_location': 1430654,
       'gaia_vtoken': ?gaiaVtoken,
     });
@@ -91,10 +81,9 @@ class SearchHttp {
       options: Options(
         headers: {
           if (gaiaVtoken != null) 'cookie': 'x-bili-gaia-vtoken=$gaiaVtoken',
-          'user-agent': UaType.pc.ua,
           'origin': 'https://search.bilibili.com',
           'referer':
-              'https://search.bilibili.com/${searchType.name}?keyword=$keyword',
+              'https://search.bilibili.com/${searchType.name}?keyword=${Uri.encodeQueryComponent(keyword)}',
         },
       ),
     );

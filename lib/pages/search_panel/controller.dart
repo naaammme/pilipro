@@ -8,7 +8,6 @@ import 'package:PiliPro/models/search/result.dart';
 import 'package:PiliPro/pages/common/common_list_controller.dart';
 import 'package:PiliPro/pages/search_result/controller.dart';
 import 'package:PiliPro/utils/extension.dart';
-import 'package:PiliPro/utils/utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 
@@ -83,8 +82,6 @@ class SearchPanelController<R extends SearchNumData<T>, T>
     return false;
   }
 
-  final qvId = Utils.generateRandomString(32);
-
   String? gaiaVtoken;
 
   @override
@@ -100,7 +97,6 @@ class SearchPanelController<R extends SearchNumData<T>, T>
     categoryId: articleZoneType?.value.categoryId,
     pubBegin: pubBegin,
     pubEnd: pubEnd,
-    qvId: qvId,
     gaiaVtoken: gaiaVtoken,
     onSuccess: (String gaiaVtoken) {
       this.gaiaVtoken = gaiaVtoken;

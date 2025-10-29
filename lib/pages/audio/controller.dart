@@ -593,6 +593,7 @@ class AudioController extends GetxController
     itemType = item.itemType;
     _queryPlayUrl().then((res) {
       if (res) {
+        _videoDetailController = null;
         _updateCurrItem(audioItem);
       }
     });

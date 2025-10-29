@@ -197,7 +197,7 @@ class _SettingPageState extends State<SettingPage> {
               : ListTile(
                   leading: const Icon(Icons.logout_outlined),
                   onTap: () => _logoutDialog(context),
-                  title: Text('快速退出当前账号', style: titleStyle),
+                  title: Text('退出当前账号', style: titleStyle),
                 ),
         ),
         ListTile(

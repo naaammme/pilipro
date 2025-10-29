@@ -1,4 +1,3 @@
-import 'package:PiliPro/http/constants.dart';
 import 'package:flutter/material.dart';
 
 class StyleString {
@@ -43,7 +42,7 @@ class Constants {
   static const baseHeaders = {
     'connection': 'keep-alive',
     'accept-encoding': 'br,gzip',
-    'referer': HttpString.baseUrl,
+    //'referer': HttpString.baseUrl,
     'env': 'prod',
     'app-key': 'android64',
     'x-bili-aurora-zone': 'sh001',
