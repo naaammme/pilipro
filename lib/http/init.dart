@@ -81,7 +81,10 @@ class Request {
       await Request().post(
         Api.activateBuvidApi,
         data: {'payload': jsonData},
-        options: Options(contentType: Headers.jsonContentType),
+        options: Options(
+          extra: {'account': account},
+          contentType: Headers.jsonContentType,
+        ),
       );
     } catch (_) {}
   }

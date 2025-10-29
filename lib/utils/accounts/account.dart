@@ -10,6 +10,7 @@ sealed class Account {
 
   Future<void> onChange() => Future.value();
 
+  @Deprecated('AccountType is deprecated, use Accounts.currentAccount instead')
   Set<AccountType> get type => const {};
 
   bool get activited => false;
@@ -49,6 +50,7 @@ class LoginAccount extends Account {
   @HiveField(2)
   final String? refresh;
   @override
+  @Deprecated('AccountType is deprecated')
   @HiveField(3)
   final Set<AccountType> type;
 
@@ -102,7 +104,7 @@ class LoginAccount extends Account {
     this.cookieJar,
     this.accessKey,
     this.refresh, [
-    Set<AccountType>? type,
+    @Deprecated('AccountType is deprecated') Set<AccountType>? type,
   ]) : type = type ?? {} {
     cookieJar.setBuvid3();
   }
@@ -132,6 +134,7 @@ class AnonymousAccount extends Account {
   @override
   final String? refresh = null;
   @override
+  @Deprecated('AccountType is deprecated')
   final Set<AccountType> type = {};
   @override
   final int mid = 0;

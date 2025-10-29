@@ -1,7 +1,6 @@
 import 'package:PiliPro/http/fav.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/user.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/common/theme/theme_type.dart';
 import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/models/user/stat.dart';
@@ -224,16 +223,17 @@ class MineController
           );
         },
       ).then((res) {
-        if (res == false) {
-          return;
+        // Note: 永久/临时模式的区分已移除，现在统一切换到匿名账户
+        // 用户可以通过账户管理界面切换回登录账户
+        if (res != false) {
+          Accounts.switchAccount(AnonymousAccount());
         }
-        res == true
-            ? Accounts.set(AccountType.heartbeat, AnonymousAccount())
-            : Accounts.accountMode[AccountType.heartbeat.index] =
-                  AnonymousAccount();
       });
     } else {
-      Accounts.set(AccountType.heartbeat, Accounts.main);
+      // 退出无痕模式，切换回之前的登录账户
+      if (Accounts.accountList.isNotEmpty) {
+        Accounts.switchAccount(Accounts.accountList.first);
+      }
       SmartDialog.dismiss(result: false);
       SmartDialog.show(
         clickMaskDismiss: false,

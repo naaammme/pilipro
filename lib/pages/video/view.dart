@@ -492,14 +492,17 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
       }
     }
     super.didPopNext();
-    if (videoDetailController.autoPlay.value) {
-      await videoDetailController.playerInit(
-        autoplay: videoDetailController.playerStatus == PlayerStatus.playing,
-      );
-    } else if (videoDetailController.plPlayerController.preInitPlayer &&
-        !videoDetailController.isQuerying &&
-        videoDetailController.videoState.value is! Error) {
-      await videoDetailController.playerInit();
+    // 只有在数据已加载的情况下才初始化播放器，避免访问未初始化的data字段
+    // 如果数据还在加载中，queryVideoUrl完成后会自动调用playerInit
+    final videoState = videoDetailController.videoState.value;
+    if (videoState is Success && !videoDetailController.isQuerying) {
+      if (videoDetailController.autoPlay.value) {
+        await videoDetailController.playerInit(
+          autoplay: videoDetailController.playerStatus == PlayerStatus.playing,
+        );
+      } else if (videoDetailController.plPlayerController.preInitPlayer) {
+        await videoDetailController.playerInit();
+      }
     }
 
     plPlayerController

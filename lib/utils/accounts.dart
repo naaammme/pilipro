@@ -7,20 +7,21 @@ import 'package:hive/hive.dart';
 
 abstract class Accounts {
   static late final Box<LoginAccount> account;
-  static final List<Account> accountMode = List.filled(
-    AccountType.values.length,
-    AnonymousAccount(),
-  );
-  static Account get main => accountMode[AccountType.main.index];
-  static Account get heartbeat => accountMode[AccountType.heartbeat.index];
-  static Account get history {
-    final heartbeat = Accounts.heartbeat;
-    if (heartbeat is AnonymousAccount) {
-      return Accounts.main;
-    }
-    return heartbeat;
-  }
-  // static set main(Account account) => set(AccountType.main, account);
+
+  // 新的架构只维护一个当前账号
+  static Account _currentAccount = AnonymousAccount();
+
+  // 获取当前主账号
+  static Account get currentAccount => _currentAccount;
+
+  // 获取所有已登录账号列表
+  static List<LoginAccount> get accountList => account.values.toList();
+
+  static Account get main => _currentAccount;
+  static Account get heartbeat => _currentAccount; // 统一返回当前账号
+  static Account get recommend => _currentAccount; // 统一返回当前账号
+  static Account get video => _currentAccount; // 统一返回当前账号
+  static Account get history => _currentAccount;
 
   static Future<void> init() async {
     account = await Hive.openBox(
@@ -71,60 +72,80 @@ abstract class Accounts {
   // }
 
   static Future<void> refresh() async {
-    for (var a in account.values) {
-      for (var t in a.type) {
-        accountMode[t.index] = a;
-      }
+    // 尝试从Hive中恢复最后使用的账号
+    if (account.isNotEmpty) {
+      // 默认使用第一个账号作为当前账号
+      _currentAccount = account.values.first;
+
+      // 如果之前有保存当前账号的mid，则恢复它
+      // TODO: 可以在后续添加持久化当前账号的逻辑
     }
-    await Future.wait(
-      (accountMode.toSet()..removeWhere((i) => i.activited)).map(
-        Request.buvidActive,
-      ),
-    );
+
+    // 激活当前账号的buvid
+    if (!_currentAccount.activited) {
+      await Request.buvidActive(_currentAccount);
+    }
   }
 
   static Future<void> clear() async {
     await account.clear();
-    for (int i = 0; i < AccountType.values.length; i++) {
-      accountMode[i] = AnonymousAccount();
-    }
+    _currentAccount = AnonymousAccount();
+
     await AnonymousAccount().delete();
-    Request.buvidActive(AnonymousAccount());
+    await Request.buvidActive(AnonymousAccount());
+    await LoginUtils.onLogoutMain();
   }
 
   static Future<void> deleteAll(Set<Account> accounts) async {
-    var isloginMain = Accounts.main.isLogin;
-    for (int i = 0; i < AccountType.values.length; i++) {
-      if (accounts.contains(accountMode[i])) {
-        accountMode[i] = AnonymousAccount();
+    var isCurrentAccountDeleted = accounts.contains(_currentAccount);
+
+    // 删除选中的账号
+    await Future.wait(accounts.map((i) => i.delete()));
+    // 如果删除的是当前账号，需要切换到其他账号或游客模式
+    if (isCurrentAccountDeleted) {
+      if (account.isEmpty) {
+        // 没有其他账号了，切换到游客模式
+        _currentAccount = AnonymousAccount();
+        await LoginUtils.onLogoutMain();
+      } else {
+        // 切换到第一个可用账号
+        await switchAccount(account.values.first);
       }
     }
-    await Future.wait(accounts.map((i) => i.delete()));
-    if (isloginMain && !Accounts.main.isLogin) {
-      await LoginUtils.onLogoutMain();
+  }
+
+  /// 切换到指定账号（核心方法）
+  static Future<void> switchAccount(Account newAccount) async {
+    if (_currentAccount == newAccount) return;
+
+    final wasLogin = _currentAccount.isLogin;
+    _currentAccount = newAccount;
+
+    // 激活新账号的buvid
+    if (!newAccount.activited) {
+      await Request.buvidActive(newAccount);
+    }
+
+    // 触发登录/登出回调
+    if (newAccount.isLogin) {
+      await LoginUtils.onLoginMain();
+      MineController.anonymity.value = false;
+    } else {
+      if (wasLogin) {
+        await LoginUtils.onLogoutMain();
+      }
+      MineController.anonymity.value = true;
     }
   }
 
-  static Future<void> set(AccountType key, Account account) async {
-    await (accountMode[key.index]..type.remove(key)).onChange();
-    accountMode[key.index] = account..type.add(key);
-    await account.onChange();
-    if (!account.activited) await Request.buvidActive(account);
-    switch (key) {
-      case AccountType.main:
-        await (account.isLogin
-            ? LoginUtils.onLoginMain()
-            : LoginUtils.onLogoutMain());
-        break;
-      case AccountType.heartbeat:
-        MineController.anonymity.value = !account.isLogin;
-        break;
-      default:
-        break;
-    }
+  /// 添加新账号并切换到该账号
+  static Future<void> addAndSwitchAccount(LoginAccount newAccount) async {
+    await newAccount.onChange(); // 保存到Hive
+    await switchAccount(newAccount);
   }
 
+  /// 兼容旧的get方法但现在统一返回当前账号
   static Account get(AccountType key) {
-    return accountMode[key.index];
+    return _currentAccount;
   }
 }

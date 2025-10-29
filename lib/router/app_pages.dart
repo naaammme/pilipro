@@ -1,4 +1,5 @@
 import 'package:PiliPro/pages/about/view.dart';
+import 'package:PiliPro/pages/account_management/view.dart';
 import 'package:PiliPro/pages/article/view.dart';
 import 'package:PiliPro/pages/article_list/view.dart';
 import 'package:PiliPro/pages/audio/view.dart';
@@ -176,6 +177,8 @@ class Routes {
     CustomGetPage(name: '/hisComment', page: () => const HisCommentPage()),
     // 登录页面
     CustomGetPage(name: '/loginPage', page: () => const LoginPage()),
+    // 账户管理
+    CustomGetPage(name: '/accountManagement', page: () => const AccountManagementPage()),
     // 用户动态
     CustomGetPage(
       name: '/memberDynamics',

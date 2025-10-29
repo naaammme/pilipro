@@ -3,14 +3,12 @@ import 'package:PiliPro/common/widgets/view_safe_area.dart';
 import 'package:PiliPro/http/login.dart';
 import 'package:PiliPro/models/common/setting_type.dart';
 import 'package:PiliPro/pages/about/view.dart';
-import 'package:PiliPro/pages/login/controller.dart';
 import 'package:PiliPro/pages/setting/extra_setting.dart';
 import 'package:PiliPro/pages/setting/play_setting.dart';
 import 'package:PiliPro/pages/setting/privacy_setting.dart';
 import 'package:PiliPro/pages/setting/recommend_setting.dart';
 import 'package:PiliPro/pages/setting/style_setting.dart';
 import 'package:PiliPro/pages/setting/video_setting.dart';
-import 'package:PiliPro/pages/setting/widgets/multi_select_dialog.dart';
 import 'package:PiliPro/pages/webdav/view.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
@@ -188,9 +186,10 @@ class _SettingPageState extends State<SettingPage> {
               ),
             ),
         ListTile(
-          onTap: () => LoginPageController.switchAccountDialog(context),
-          leading: const Icon(Icons.switch_account_outlined),
-          title: Text('设置账号模式', style: titleStyle),
+          onTap: () => Get.toNamed('/accountManagement'),
+          leading: const Icon(Icons.manage_accounts_outlined),
+          title: Text('账户管理', style: titleStyle),
+          subtitle: Text('切换账号、添加账号、退出登录', style: subTitleStyle),
         ),
         Obx(
           () => _noAccount.value
@@ -198,7 +197,7 @@ class _SettingPageState extends State<SettingPage> {
               : ListTile(
                   leading: const Icon(Icons.logout_outlined),
                   onTap: () => _logoutDialog(context),
-                  title: Text('退出登录', style: titleStyle),
+                  title: Text('快速退出当前账号', style: titleStyle),
                 ),
         ),
         ListTile(
@@ -212,70 +211,67 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Future<void> _logoutDialog(BuildContext context) async {
-    final result = await showDialog<Set<LoginAccount>>(
-      context: context,
-      builder: (context) {
-        return MultiSelectDialog<LoginAccount>(
-          title: '选择要登出的账号uid',
-          initValues: const Iterable.empty(),
-          values: {for (var i in Accounts.account.values) i: i.mid.toString()},
-        );
-      },
-    );
-    if (!context.mounted || result.isNullOrEmpty) return;
-    Future<void> logout() {
-      _noAccount.value = result!.length == Accounts.account.length;
-      return Accounts.deleteAll(result);
+    // 简化：直接退出当前账号
+    final currentAccount = Accounts.currentAccount;
+
+    if (!currentAccount.isLogin) {
+      SmartDialog.showToast('当前未登录');
+      return;
     }
 
-    showDialog(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('提示'),
+          title: const Text('确认退出'),
           content: Text(
-            "确认要退出以下账号登录吗\n\n${result!.map((i) => i.mid.toString()).join('\n')}",
+            '确认要退出当前账号吗？\n\nUID: ${(currentAccount as LoginAccount).mid}',
           ),
           actions: [
             TextButton(
-              onPressed: Get.back,
+              onPressed: () => Get.back(result: false),
               child: Text(
-                '点错了',
+                '取消',
                 style: TextStyle(
                   color: theme.colorScheme.outline,
                 ),
               ),
             ),
             TextButton(
-              onPressed: () {
-                Get.back();
-                logout();
-              },
+              onPressed: () => Get.back(result: true),
               child: Text(
-                '仅登出',
+                '确认退出',
                 style: TextStyle(color: theme.colorScheme.error),
               ),
-            ),
-            TextButton(
-              onPressed: () async {
-                SmartDialog.showLoading();
-                final res = await LoginHttp.logout(Accounts.main);
-                if (res['status']) {
-                  SmartDialog.dismiss();
-                  logout();
-                  Get.back();
-                } else {
-                  SmartDialog.dismiss();
-                  SmartDialog.showToast(res['msg'].toString());
-                }
-              },
-              child: const Text('确认'),
             ),
           ],
         );
       },
     );
+
+    if (confirmed != true || !context.mounted) return;
+
+    SmartDialog.showLoading(msg: '退出中...');
+    try {
+      // 调用服务器登出API
+      final res = await LoginHttp.logout(currentAccount);
+      if (!res['status']) {
+        SmartDialog.dismiss();
+        SmartDialog.showToast('服务器登出失败: ${res['msg']}');
+        return;
+      }
+
+      // 删除本地账户
+      await Accounts.deleteAll({currentAccount as LoginAccount});
+      _noAccount.value = Accounts.accountList.isEmpty;
+
+      SmartDialog.dismiss();
+      SmartDialog.showToast('已退出登录');
+    } catch (e) {
+      SmartDialog.dismiss();
+      SmartDialog.showToast('退出失败: $e');
+    }
   }
 
   Widget _buildSearchItem(ThemeData theme) => Padding(

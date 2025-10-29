@@ -163,7 +163,9 @@ class AccountManager extends Interceptor {
       );
     }
 
-    options.headers.addAll(account.headers);
+    options.headers
+      ..addAll(account.headers)
+      ..['referer'] ??= HttpString.baseUrl;
 
     // app端不需要管理cookie
     if (path.startsWith(HttpString.appBaseUrl)) {
@@ -331,12 +333,17 @@ class AccountManager extends Interceptor {
 
   Account _findAccount(String path) => loginApi.contains(path)
       ? AnonymousAccount()
-      : Accounts.get(
-          AccountType.values.firstWhere(
-            (i) => apiTypeSet[i]?.contains(path) == true,
-            orElse: () => AccountType.main,
-          ),
-        );
+      : Accounts.currentAccount; // 简化：统一使用当前账号
+
+  // 旧的路由逻辑如下
+  // Account _findAccountOld(String path) => loginApi.contains(path)
+  //     ? AnonymousAccount()
+  //     : Accounts.get(
+  //         AccountType.values.firstWhere(
+  //           (i) => apiTypeSet[i]?.contains(path) == true,
+  //           orElse: () => AccountType.main,
+  //         ),
+  //       );
 
   static Future<String> dioError(DioException error) async {
     switch (error.type) {

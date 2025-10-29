@@ -6,4 +6,4 @@ enum AccountType {
 
   final String title;
   const AccountType(this.title);
-}
+} // 枚举, 用户账号类型(暂时保留保持兼容)

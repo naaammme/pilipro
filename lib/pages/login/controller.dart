@@ -3,11 +3,9 @@ import 'dart:io';
 
 import 'package:PiliPro/common/constants.dart';
 import 'package:PiliPro/common/widgets/button/icon_button.dart';
-import 'package:PiliPro/common/widgets/radio_widget.dart';
 import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/login.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/login/model.dart';
 import 'package:PiliPro/pages/login/geetest/geetest_webview_dialog.dart';
 import 'package:PiliPro/utils/accounts.dart';
@@ -264,7 +262,6 @@ class LoginPageController extends GetxController
             null,
             null,
           ).onChange();
-          if (!Accounts.main.isLogin) await switchAccountDialog(Get.context!);
           SmartDialog.showToast('登录成功');
           Get.back();
         } catch (e) {
@@ -708,88 +705,23 @@ class LoginPageController extends GetxController
       tokenInfo['access_token'],
       tokenInfo['refresh_token'],
     );
-    await Future.wait([account.onChange(), AnonymousAccount().delete()]);
-    for (int i = 0; i < AccountType.values.length; i++) {
-      if (Accounts.accountMode[i].mid == account.mid) {
-        Accounts.accountMode[i] = account;
-      }
-    }
-    if (Accounts.main.isLogin) {
-      SmartDialog.showToast('登录成功');
-    } else {
-      SmartDialog.showToast('登录成功, 请先设置账号模式');
-      await switchAccountDialog(Get.context!);
-    }
-  }
 
-  static Future<void>? switchAccountDialog(BuildContext context) {
-    if (Accounts.account.isEmpty) {
-      SmartDialog.showToast('请先登录');
-      return Get.toNamed('/loginPage');
+    // 清除匿名账户的数据
+    await AnonymousAccount().delete();
+
+    // 检查是否已存在该账号
+    final existingAccount = Accounts.accountList
+        .where((a) => a.mid == account.mid)
+        .firstOrNull;
+
+    if (existingAccount != null) {
+      // 账号已存在，询问是否切换
+      SmartDialog.showToast('账号已存在');
+      await Accounts.switchAccount(account);
+    } else {
+      // 新账号，添加并切换
+      await Accounts.addAndSwitchAccount(account);
+      SmartDialog.showToast('登录成功');
     }
-    final selectAccount = List.of(Accounts.accountMode);
-    final options = {
-      AnonymousAccount(): '0',
-      ...Accounts.account.toMap().map(
-        (k, v) => MapEntry(v, k as String),
-      ),
-    };
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择账号mid, 为0时使用匿名'),
-        titlePadding: const EdgeInsets.only(left: 22, top: 16, right: 22),
-        contentPadding: const EdgeInsets.symmetric(vertical: 5),
-        actionsPadding: const EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: 10,
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: AccountType.values
-                .map(
-                  (e) => Builder(
-                    builder: (context) => RadioGroup(
-                      groupValue: selectAccount[e.index],
-                      onChanged: (v) {
-                        selectAccount[e.index] = v!;
-                        (context as Element).markNeedsBuild();
-                      },
-                      child: WrapRadioOptionsGroup<Account>(
-                        groupTitle: e.title,
-                        options: options,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: Get.back,
-            child: Text(
-              '取消',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              for (var (i, v) in selectAccount.indexed) {
-                if (v != Accounts.accountMode[i]) {
-                  Accounts.set(AccountType.values[i], v);
-                }
-              }
-              Get.back();
-            },
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
   }
 }

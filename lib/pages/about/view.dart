@@ -179,7 +179,7 @@ Commit Hash: ${BuildConfig.commitHash}''',
             ListTile(
               onTap: () => Utils.channel.invokeMethod('linkVerifySettings'),
               leading: const Icon(MdiIcons.linkBoxOutline),
-              title: const Text('打开受支持的链接'),
+              title: const Text('打开'),
               trailing: Icon(
                 Icons.arrow_forward,
                 size: 16,

@@ -11,7 +11,6 @@ import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/models_new/fav/fav_folder/list.dart';
 import 'package:PiliPro/pages/common/common_page.dart';
 import 'package:PiliPro/pages/home/view.dart';
-import 'package:PiliPro/pages/login/controller.dart';
 import 'package:PiliPro/pages/main/controller.dart';
 import 'package:PiliPro/pages/mine/controller.dart';
 import 'package:PiliPro/pages/mine/widgets/item.dart';
@@ -179,16 +178,6 @@ class _MediaPageState extends CommonPageState<MinePage, MineController>
                   : const Icon(MdiIcons.incognitoOff),
             );
           },
-        ),
-        IconButton(
-          iconSize: 22,
-          padding: const EdgeInsets.all(8),
-          style: const ButtonStyle(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          tooltip: '设置账号模式',
-          onPressed: () => LoginPageController.switchAccountDialog(context),
-          icon: const Icon(Icons.switch_account_outlined),
         ),
         Obx(
           () {
