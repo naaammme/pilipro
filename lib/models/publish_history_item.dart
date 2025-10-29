@@ -9,6 +9,7 @@ class PublishHistoryItem {
   final String content; // 内容
   final int timestamp; // 时间戳
   final PublishType publishType; // 发布类型
+  final int mid; // 发布者的用户id
   final int? commentType; // 评论区类型(仅评论)
   final int? oid; // 目标id
   final String? targetTitle; // 目标标题(视频标题/直播间标题等)
@@ -24,6 +25,7 @@ class PublishHistoryItem {
     required this.content,
     required this.timestamp,
     required this.publishType,
+    required this.mid,
     this.commentType,
     this.oid,
     this.targetTitle,
@@ -42,6 +44,7 @@ class PublishHistoryItem {
       content: json['content'] as String,
       timestamp: json['timestamp'] as int,
       publishType: PublishType.values[json['publishType'] as int],
+      mid: json['mid'] as int? ?? 0, // 兼容旧数据,如果没有mid默认为0
       commentType: json['commentType'] as int?,
       oid: json['oid'] as int?,
       targetTitle: json['targetTitle'] as String?,
@@ -61,6 +64,7 @@ class PublishHistoryItem {
       'content': content,
       'timestamp': timestamp,
       'publishType': publishType.index,
+      'mid': mid,
       if (commentType != null) 'commentType': commentType,
       if (oid != null) 'oid': oid,
       if (targetTitle != null) 'targetTitle': targetTitle,

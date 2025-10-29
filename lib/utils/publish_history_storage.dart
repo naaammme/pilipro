@@ -1,14 +1,21 @@
 import 'dart:convert';
 
 import 'package:PiliPro/models/publish_history_item.dart';
+import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/id_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
 
 /// 发布历史存储工具类(评论+弹幕)
 abstract class PublishHistoryStorage {
-  static const String _key = 'publishHistory';
+  static const String _keyPrefix = 'publishHistory_';
   static const String _maxItemsKey = 'publishHistoryMaxItems';
   static const int defaultMaxItems = 5000; // 默认最多保存5000条历史
+
+  /// 获取当前用户的存储key
+  static String _getStorageKey() {
+    final mid = Accounts.main.mid;
+    return '$_keyPrefix$mid';
+  }
 
   /// 获取用户设置的最大保存数量
   static int getMaxItems() {
@@ -40,7 +47,7 @@ abstract class PublishHistoryStorage {
       if (history.length > maxItems) {
         final trimmedHistory = history.sublist(0, maxItems);
         final jsonList = trimmedHistory.map((e) => e.toJson()).toList();
-        await GStorage.localCache.put(_key, jsonEncode(jsonList));
+        await GStorage.localCache.put(_getStorageKey(), jsonEncode(jsonList));
       }
     } catch (e) {
       print('裁剪历史记录失败: $e');
@@ -83,6 +90,7 @@ abstract class PublishHistoryStorage {
         content: content,
         timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000, // 使用秒级时间戳
         publishType: PublishType.comment,
+        mid: Accounts.main.mid,
         commentType: type,
         oid: oid,
         targetTitle: targetTitle,
@@ -110,6 +118,7 @@ abstract class PublishHistoryStorage {
         content: content,
         timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000, // 使用秒级时间戳
         publishType: PublishType.videoDanmaku,
+        mid: Accounts.main.mid,
         bvid: bvid,
         cid: cid,
         targetTitle: targetTitle,
@@ -133,6 +142,7 @@ abstract class PublishHistoryStorage {
         content: content,
         timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000, // 使用秒级时间戳
         publishType: PublishType.liveDanmaku,
+        mid: Accounts.main.mid,
         roomId: roomId,
         targetTitle: targetTitle,
         targetUrl: 'bilibili://live/$roomId',
@@ -159,32 +169,38 @@ abstract class PublishHistoryStorage {
 
     // 保存到本地存储
     final jsonList = history.map((e) => e.toJson()).toList();
-    await GStorage.localCache.put(_key, jsonEncode(jsonList));
+    await GStorage.localCache.put(_getStorageKey(), jsonEncode(jsonList));
   }
 
   /// 获取历史列表(可选类型过滤)
   static List<PublishHistoryItem> getHistory({PublishType? filterType}) {
     try {
-      final String? jsonStr = GStorage.localCache.get(_key);
+      final String? jsonStr = GStorage.localCache.get(_getStorageKey());
       if (jsonStr == null || jsonStr.isEmpty) {
         return [];
       }
 
       final List<dynamic> jsonList = jsonDecode(jsonStr);
+      final currentMid = Accounts.main.mid;
       final allItems = jsonList
           .map(
             (json) => PublishHistoryItem.fromJson(json as Map<String, dynamic>),
           )
           .toList();
 
+      // 过滤出当前用户的数据（mid为0的旧数据不过滤，都显示）
+      final currentUserItems = allItems
+          .where((item) => item.mid == 0 || item.mid == currentMid)
+          .toList();
+
       // 如果指定了类型过滤
       if (filterType != null) {
-        return allItems
+        return currentUserItems
             .where((item) => item.publishType == filterType)
             .toList();
       }
 
-      return allItems;
+      return currentUserItems;
     } catch (e) {
       print('读取发布历史失败: $e');
       return [];
@@ -198,16 +214,16 @@ abstract class PublishHistoryStorage {
       history.removeWhere((item) => item.timestamp == timestamp);
 
       final jsonList = history.map((e) => e.toJson()).toList();
-      await GStorage.localCache.put(_key, jsonEncode(jsonList));
+      await GStorage.localCache.put(_getStorageKey(), jsonEncode(jsonList));
     } catch (e) {
       print('删除发布历史失败: $e');
     }
   }
 
-  /// 清空所有历史
+  /// 清空当前用户的所有历史
   static Future<void> clearAll() async {
     try {
-      await GStorage.localCache.delete(_key);
+      await GStorage.localCache.delete(_getStorageKey());
     } catch (e) {
       print('清空发布历史失败: $e');
     }
@@ -230,9 +246,14 @@ abstract class PublishHistoryStorage {
     try {
       final List<dynamic> jsonList = jsonDecode(jsonString);
       final items = jsonList
-          .map(
-            (json) => PublishHistoryItem.fromJson(json as Map<String, dynamic>),
-          )
+          .map((json) {
+            final jsonMap = json as Map<String, dynamic>;
+            // 如果导入的数据缺少mid字段,自动添加并设置为0(旧数据兼容)
+            if (!jsonMap.containsKey('mid')) {
+              jsonMap['mid'] = 0;
+            }
+            return PublishHistoryItem.fromJson(jsonMap);
+          })
           .toList();
 
       // 合并现有数据和导入数据,去重(按timestamp)
@@ -261,7 +282,7 @@ abstract class PublishHistoryStorage {
 
       // 保存
       final jsonListToSave = finalList.map((e) => e.toJson()).toList();
-      await GStorage.localCache.put(_key, jsonEncode(jsonListToSave));
+      await GStorage.localCache.put(_getStorageKey(), jsonEncode(jsonListToSave));
 
       return true;
     } catch (e) {
