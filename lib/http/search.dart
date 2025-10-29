@@ -10,6 +10,7 @@ import 'package:PiliPro/models_new/dynamic/dyn_topic_pub_search/data.dart';
 import 'package:PiliPro/models_new/pgc/pgc_info_model/result.dart';
 import 'package:PiliPro/models_new/search/search_rcmd/data.dart';
 import 'package:PiliPro/models_new/search/search_trending/data.dart';
+import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/request_utils.dart';
 import 'package:PiliPro/utils/wbi_sign.dart';
@@ -26,6 +27,7 @@ class SearchHttp {
         'term': term,
         'main_ver': 'v1',
         'highlight': term,
+        if (Accounts.main.isLogin) 'userid': Accounts.main.mid,
       },
     );
     if (res.data is String) {
