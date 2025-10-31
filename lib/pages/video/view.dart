@@ -2236,9 +2236,8 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   void _onPopInvokedWithResult(bool didPop, result) {
     // 当页面已经被 pop 时
     if (didPop) {
-      // 检查上一个路由是否也是视频详情页
-      // 如果是，说明是 A->B->A 的情况，此时不应该启动小窗
-      final bool isReturningToVideo = Get.previousRoute.startsWith('/video');
+      // 使用 VideoStackManager 检查路由栈中是否还有其他视频页
+      final bool isReturningToVideo = VideoStackManager.isReturningToVideo();
 
       // 如果视频正在播放，启动 PiP
       if (plPlayerController?.playerStatus.playing == true &&

@@ -45,6 +45,7 @@ import 'package:PiliPro/plugin/pl_player/controller.dart';
 import 'package:PiliPro/plugin/pl_player/models/data_source.dart';
 import 'package:PiliPro/plugin/pl_player/models/heart_beat_type.dart';
 import 'package:PiliPro/plugin/pl_player/models/play_status.dart';
+import 'package:PiliPro/services/pip_overlay_service.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/duration_utils.dart';
 import 'package:PiliPro/utils/page_utils.dart';
@@ -254,6 +255,7 @@ class VideoDetailController extends GetxController
   @override
   void onInit() {
     super.onInit();
+    VideoStackManager.increment(); // 视频页面入栈
     args = Get.arguments;
     videoType = args['videoType'];
     if (videoType == VideoType.pgc) {
@@ -1609,6 +1611,7 @@ class VideoDetailController extends GetxController
 
   @override
   void onClose() {
+    VideoStackManager.decrement(); // 视频页面关闭，栈减一
     tabCtr.dispose();
     scrollCtr
       ..removeListener(scrollListener)

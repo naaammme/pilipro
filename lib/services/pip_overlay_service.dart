@@ -4,6 +4,31 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+// 尝试加一个视频页面堆栈管理器解决 PiP 返回问题
+class VideoStackManager {
+  static int _videoPageCount = 0;
+
+  /// 当 VideoDetailController onInit 时调用
+  static void increment() {
+    _videoPageCount++;
+  }
+
+  /// 当 VideoDetailController onClose 时调用
+  static void decrement() {
+    if (_videoPageCount > 0) {
+      _videoPageCount--;
+    }
+  }
+
+  /// 检查是否正返回到另一个视频页
+  /// 在 _onPopInvokedWithResult 中调用时，当前页面尚未销毁，
+  /// 所以 _videoPageCount 仍然包含当前页。
+  /// 如果 _videoPageCount > 1，意味着栈中至少还有另一个视频页。
+  static bool isReturningToVideo() {
+    return _videoPageCount > 1;
+  }
+}
+
 class PipOverlayService {
   static OverlayEntry? _overlayEntry;
   static bool isInPipMode = false;
