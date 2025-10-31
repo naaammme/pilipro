@@ -127,7 +127,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   void initState() {
     super.initState();
 
-    // 【修改】 检查是否从PiP返回
+    // 检查是否从PiP返回
     final bool fromPip = Get.arguments['fromPip'] ?? false;
 
     // 如果视频 PiP 正在显示
@@ -165,7 +165,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
       pgcIntroController = Get.put(PgcIntroController(), tag: heroTag);
     }
 
-    // 如果从PiP返回，播放器已初始化，跳过 videoSourceInit
+    // 如果从PiP返回，播放器已初始化
     if (fromPip) {
       // 播放器已经初始化，只需重新附加监听器
       plPlayerController = videoDetailController.plPlayerController;
@@ -186,9 +186,30 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
 
       // 强制显示控件
       plPlayerController!.controls = true;
+      // 此时播放器已在运行，但 VideoDetailController 的 data 和 currentVideoQa 等 late 变量
+      // 并未初始化。我们必须调用 queryVideoUrl 来获取它们，以渲染播放器控件 (如画质列表)。
 
-      // 关键：设置 videoState 为 Success，否则 build 方法会返回 SizedBox.shrink()
-      videoDetailController.videoState.value = const Success(null);
+      // 先设置状态为加载中，以防 build 方法提前执行
+      videoDetailController.videoState.value = LoadingState.loading();
+
+      // 再调用 queryVideoUrl，并传入 reinitializePlayer: false
+      // 这会获取所有数据 (data, currentVideoQa...) 但跳过 playerInit()
+      videoDetailController
+          .queryVideoUrl(
+            defaultST: videoDetailController.playedTime, // 使用 PiP 的当前进度
+            fromReset: true, // 保持此参数，用于 SponsorBlock 等逻辑
+            reinitializePlayer: false, // 静止播放器被重新初始化
+          )
+          .then((_) {
+            // 数据获取成功后，将状态设为 Success，触发 UI 渲染
+            if (videoDetailController.videoState.value is! Error) {
+              videoDetailController.videoState.value = const Success(null);
+            }
+          })
+          .catchError((e) {
+            // 处理获取数据时可能发生的错误
+            videoDetailController.videoState.value = Error(e.toString());
+          });
     } else {
       // 正常加载
       videoSourceInit();
@@ -495,7 +516,10 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
     // 只有在数据已加载的情况下才初始化播放器，避免访问未初始化的data字段
     // 如果数据还在加载中，queryVideoUrl完成后会自动调用playerInit
     final videoState = videoDetailController.videoState.value;
-    if (videoState is Success && !videoDetailController.isQuerying) {
+    // 添加 videoUrl != null 检查，防止 'data' 未初始化时调用 playerInit
+    if (videoState is Success &&
+        !videoDetailController.isQuerying &&
+        videoDetailController.videoUrl != null) {
       if (videoDetailController.autoPlay.value) {
         await videoDetailController.playerInit(
           autoplay: videoDetailController.playerStatus == PlayerStatus.playing,
@@ -1397,17 +1421,23 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
             maxWidth: width,
             maxHeight: height,
             plPlayerController: plPlayerController!,
-            videoDetailController: videoDetailController,
-            introController: videoDetailController.isUgc
-                ? ugcIntroController
-                : pgcIntroController,
-            headerControl: HeaderControl(
-              key: videoDetailController.headerCtrKey,
-              isPortrait: isPortrait,
-              controller: videoDetailController.plPlayerController,
-              videoDetailCtr: videoDetailController,
-              heroTag: heroTag,
-            ),
+            // 当 isPipMode 为 true 时，传递 null 给页面的控制器，避免空指针错误
+            videoDetailController: isPipMode ? null : videoDetailController,
+            introController: isPipMode
+                ? null
+                : (videoDetailController.isUgc
+                      ? ugcIntroController
+                      : pgcIntroController),
+            // pip模式下传递一个空白 Widget 而不是 null
+            headerControl: isPipMode
+                ? const SizedBox.shrink()
+                : HeaderControl(
+                    key: videoDetailController.headerCtrKey,
+                    isPortrait: isPortrait,
+                    controller: videoDetailController.plPlayerController,
+                    videoDetailCtr: videoDetailController,
+                    heroTag: heroTag,
+                  ),
             danmuWidget: isPipMode && pipNoDanmaku
                 ? null
                 : Obx(
@@ -1419,8 +1449,8 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                       isFullScreen: plPlayerController!.isFullScreen.value,
                     ),
                   ),
-            showEpisodes: showEpisodes,
-            showViewPoints: showViewPoints,
+            showEpisodes: isPipMode ? null : showEpisodes,
+            showViewPoints: isPipMode ? null : showViewPoints,
           ),
   );
 
@@ -2206,9 +2236,15 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   void _onPopInvokedWithResult(bool didPop, result) {
     // 当页面已经被 pop 时
     if (didPop) {
+      // 检查上一个路由是否也是视频详情页
+      // 如果是，说明是 A->B->A 的情况，此时不应该启动小窗
+      final bool isReturningToVideo = Get.previousRoute.startsWith('/video');
+
       // 如果视频正在播放，启动 PiP
       if (plPlayerController?.playerStatus.playing == true &&
-          !PipOverlayService.isInPipMode) {
+          !PipOverlayService.isInPipMode &&
+          !isReturningToVideo) {
+        // 添加 !isReturningToVideo 条件
         // 设置标志，防止 dispose 销毁播放器
         _isEnteringPipMode = true;
 

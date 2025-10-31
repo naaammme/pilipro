@@ -125,19 +125,17 @@ class LivePipOverlayService {
     final overlayToRemove = _overlayEntry;
     _overlayEntry = null;
 
-    // 延迟移除 overlay
-    Future.delayed(const Duration(milliseconds: 100), () {
-      try {
-        overlayToRemove?.remove();
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error removing live pip overlay: $e');
-        }
+    // 直接移除 overlay 并调用回调
+    try {
+      overlayToRemove?.remove();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error removing live pip overlay: $e');
       }
+    }
 
-      // 调用回调
-      closeCallback?.call();
-    });
+    // 调用回调
+    closeCallback?.call();
   }
 
   /// 检查是否是当前直播间的小窗

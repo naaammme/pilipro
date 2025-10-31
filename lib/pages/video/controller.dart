@@ -1173,6 +1173,7 @@ class VideoDetailController extends GetxController
   Future<void> queryVideoUrl({
     Duration? defaultST,
     bool fromReset = false,
+    bool reinitializePlayer = true,
   }) async {
     if (isQuerying) {
       return;
@@ -1355,8 +1356,10 @@ class VideoDetailController extends GetxController
         firstAudio = AudioItem();
         audioUrl = '';
       }
-      if (autoPlay.value || plPlayerController.preInitPlayer) {
-        await playerInit();
+      if (reinitializePlayer) {
+        if (autoPlay.value || plPlayerController.preInitPlayer) {
+          await playerInit();
+        }
       }
     } else {
       autoPlay.value = false;
