@@ -40,7 +40,7 @@ abstract class Update {
           1000;
       if (BuildConfig.buildTime >= latest) {
         if (!isAuto) {
-          SmartDialog.showToast('已是最新版本');
+          SmartDialog.showToast('已检查更新,是最新版哦~');
         }
       } else {
         SmartDialog.show(

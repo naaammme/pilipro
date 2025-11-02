@@ -28,7 +28,7 @@
 - 本仓库克隆自[piliplus](https://github.com/bggRGjQaUbCoE/PiliPlus),对原项目进行了最小化改动
 - 本仓库保留了原项目[1.1.4.13版本](https://github.com/bggRGjQaUbCoE/PiliPlus/releases/tag/1.1.4.13)的全部功能,另外新增了自动记录保存视频评论,视频弹幕,直播弹幕功能(数据完全保存于本地数据库),同时增加了视频/直播的应用内小窗功能
 - 本项目仅供个人使用,只增加本人需要的功能,并且只打包了Android客户端,未来很可能只根据本人需要更新
-- 本项目可能存在一定bug,介意请勿使用,可以移步至原仓库[piliplus](https://github.com/bggRGjQaUbCoE/PiliPlus)
+- 本人水平有限,项目可能存在一定奇怪的bug,欢迎提交issues,介意请勿使用,可以移步至原仓库[piliplus](https://github.com/bggRGjQaUbCoE/PiliPlus)
 
 ## refactor
 
@@ -240,3 +240,12 @@
 <br/>
 <br/>
 <br/>
+## Star History
+
+<a href="https://www.star-history.com/#naaammme/PiliPro">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=naaammme/PiliPro&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=naaammme/PiliPro&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=naaammme/PiliPro&type=Date" />
+ </picture>
+</a>

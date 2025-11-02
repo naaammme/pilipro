@@ -1660,7 +1660,16 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
         children: [
           const Positioned.fill(child: ColoredBox(color: Colors.black)),
 
-          if (isShowing) plPlayer(width: width, height: height),
+          if (isShowing)
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: plPlayer(width: width, height: height),
+                ),
+              ),
+            ),
 
           Obx(() {
             if (!videoDetailController.autoPlay.value) {

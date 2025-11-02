@@ -122,6 +122,10 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   final RxBool _brightnessIndicator = false.obs;
   Timer? _brightnessTimer;
 
+  // 延迟显示加载动画，提升拖动进度条时的流畅感
+  final RxBool _showLoadingIndicator = false.obs;
+  Timer? _loadingDelayTimer;
+
   late FullScreenMode mode;
 
   late final RxBool showRestoreScaleBtn = false.obs;
@@ -172,6 +176,23 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         animationController.forward();
       } else {
         animationController.reverse();
+      }
+    });
+
+    // 监听缓冲状态，延迟显示加载动画以提升用户体验
+    plPlayerController.isBuffering.listen((bool isBuffering) {
+      if (isBuffering && plPlayerController.playerStatus.playing) {
+        // 延迟 300ms 显示加载动画，短暂的缓冲不会触发
+        _loadingDelayTimer?.cancel();
+        _loadingDelayTimer = Timer(const Duration(milliseconds: 300), () {
+          if (mounted && plPlayerController.isBuffering.value) {
+            _showLoadingIndicator.value = true;
+          }
+        });
+      } else {
+        // 立即隐藏加载动画
+        _loadingDelayTimer?.cancel();
+        _showLoadingIndicator.value = false;
       }
     });
     animationController = AnimationController(
@@ -294,6 +315,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     _doubleTapGestureRecognizer.dispose();
     _listener?.cancel();
     _controlsListener?.cancel();
+    _loadingDelayTimer?.cancel(); // 清理加载动画延迟定时器
     animationController.dispose();
     if (Utils.isMobile) {
       FlutterVolumeController.removeListener();
@@ -1875,8 +1897,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           ),
 
         Obx(() {
+          // 使用延迟显示逻辑：初始加载立即显示，缓冲延迟 300ms 显示
           if (plPlayerController.dataStatus.loading ||
-              (plPlayerController.isBuffering.value &&
+              (_showLoadingIndicator.value &&
                   plPlayerController.playerStatus.playing)) {
             return Center(
               child: GestureDetector(
@@ -1892,11 +1915,15 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        'assets/images/loading.webp',
+                      const SizedBox(
+                        width: 25,
                         height: 25,
-                        semanticLabel: "加载中",
-                        color: Colors.white,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
                       ),
                       if (plPlayerController.isBuffering.value)
                         Obx(() {
