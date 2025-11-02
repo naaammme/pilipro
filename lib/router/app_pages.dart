@@ -37,7 +37,7 @@ import 'package:PiliPro/pages/member_profile/view.dart';
 import 'package:PiliPro/pages/member_search/view.dart';
 import 'package:PiliPro/pages/member_upower_rank/view.dart';
 import 'package:PiliPro/pages/msg_feed_top/at_me/view.dart';
-import 'package:PiliPro/pages/msg_feed_top/his_comment/view.dart';
+import 'package:PiliPro/pages/msg_feed_top/his_published/view.dart';
 import 'package:PiliPro/pages/msg_feed_top/like_detail/view.dart';
 import 'package:PiliPro/pages/msg_feed_top/like_me/view.dart';
 import 'package:PiliPro/pages/msg_feed_top/reply_me/view.dart';
@@ -178,7 +178,10 @@ class Routes {
     // 登录页面
     CustomGetPage(name: '/loginPage', page: () => const LoginPage()),
     // 账户管理
-    CustomGetPage(name: '/accountManagement', page: () => const AccountManagementPage()),
+    CustomGetPage(
+      name: '/accountManagement',
+      page: () => const AccountManagementPage(),
+    ),
     // 用户动态
     CustomGetPage(
       name: '/memberDynamics',

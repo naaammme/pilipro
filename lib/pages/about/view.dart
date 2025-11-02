@@ -109,7 +109,7 @@ class _AboutPageState extends State<AboutPage> {
               child: Image.asset(
                 width: 150,
                 height: 150,
-                'assets/images/logo/logo.png',
+                'assets/images/logo/logo_2.png',
               ),
             ),
           ),
