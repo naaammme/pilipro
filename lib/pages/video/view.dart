@@ -2284,6 +2284,14 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
               final savedVideoType = videoDetailController.videoType;
               final savedCover = videoDetailController.cover.value;
               final savedHeroTag = heroTag; // 复用 heroTag
+              // 保存 PGC 相关参数
+              final savedEpId = videoDetailController.epId;
+              final savedSeasonId = videoDetailController.seasonId;
+              final savedPgcType = videoDetailController.pgcType;
+              // 保存 PGC 详情数据(如果是番剧/电影)
+              final savedPgcItem = videoDetailController.isUgc
+                  ? null
+                  : pgcIntroController.pgcItem;
 
               // 2. 重置标志
               _isEnteringPipMode = false;
@@ -2301,6 +2309,11 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                   'fromPip': true,
                   // 'seek' 已被 'progress' 替代，在 controller 中处理
                   'progress': currentPosition?.inMilliseconds,
+                  // PGC 相关参数
+                  'epId': savedEpId,
+                  'seasonId': savedSeasonId,
+                  'pgcType': savedPgcType,
+                  'pgcItem': savedPgcItem,
                 },
               );
             },

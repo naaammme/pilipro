@@ -1,4 +1,5 @@
 import 'package:PiliPro/models/model_owner.dart';
+import 'package:PiliPro/utils/safe_type.dart';
 
 class Avatar extends Owner {
   Pendant? pendant;
@@ -20,7 +21,7 @@ class Pendant {
   String? image;
 
   Pendant.fromJson(Map<String, dynamic> json) {
-    pid = json['pid'];
+    pid = SafeType.toInt(json['pid']);
     name = json['name'];
     image = json['image'];
   }
@@ -43,9 +44,9 @@ class Vip {
   Label? label;
 
   Vip.fromJson(Map<String, dynamic> json) {
-    type = json['type'] ?? json['vipType'];
-    status = json['status'] ?? json['vipStatus'] ?? 0;
-    dueDate = json['due_date'] ?? json['vipDueDate'];
+    type = SafeType.toInt(json['type'] ?? json['vipType']);
+    status = SafeType.toInt(json['status'] ?? json['vipStatus']) ?? 0;
+    dueDate = SafeType.toInt(json['due_date'] ?? json['vipDueDate']);
     if (json['label'] != null) label = Label.fromJson(json['label']);
   }
 }
@@ -65,7 +66,7 @@ class Label {
     text = json['text'];
     labelTheme = json['label_theme'];
     textColor = json['text_color'];
-    bgStyle = json['bg_style'];
+    bgStyle = SafeType.toInt(json['bg_style']);
     bgColor = json['bg_color'];
     borderColor = json['border_color'];
     image = json['image'];

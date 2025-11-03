@@ -7,6 +7,7 @@ import 'package:PiliPro/models/model_avatar.dart';
 import 'package:PiliPro/models_new/live/live_feed_index/watched_show.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
+import 'package:PiliPro/utils/safe_type.dart';
 
 class DynamicsDataModel {
   bool? hasMore;
@@ -87,7 +88,7 @@ class DynamicsDataModel {
     }
 
     offset = json['offset'];
-    total = json['total'];
+    total = SafeType.toInt(json['total']);
   }
 }
 
@@ -146,7 +147,7 @@ class Fallback {
 
   factory Fallback.fromJson(Map<String, dynamic> json) => Fallback(
     id: json['id'],
-    type: json['type'],
+    type: SafeType.toInt(json['type']),
   );
 }
 
@@ -251,7 +252,7 @@ class ModuleFold {
   ModuleFold.fromJson(Map<String, dynamic> json) {
     ids = (json['ids'] as List?)?.fromCast();
     statement = json['statement'];
-    type = json['type'];
+    type = SafeType.toInt(json['type']);
   }
 }
 
@@ -263,7 +264,7 @@ class ModuleCollection {
 
   ModuleCollection.fromJson(Map<String, dynamic> json) {
     count = json['count'];
-    id = json['id'];
+    id = SafeType.toInt(json['id']);
     name = json['name'];
     title = json['title'];
   }
@@ -287,7 +288,7 @@ class ModuleTopDisplay {
     album = json['album'] == null
         ? null
         : ModuleTopAlbum.fromJson(json['album']);
-    type = json['type'];
+    type = SafeType.toInt(json['type']);
   }
 }
 
@@ -297,7 +298,7 @@ class ModuleTopAlbum {
 
   ModuleTopAlbum.fromJson(Map<String, dynamic> json) {
     pics = (json['pics'] as List?)?.map((e) => Pic.fromJson(e)).toList();
-    type = json['type'];
+    type = SafeType.toInt(json['type']);
   }
 }
 
@@ -311,7 +312,7 @@ class ModuleBlocked {
 
   ModuleBlocked.fromJson(Map<String, dynamic> json) {
     bgImg = json['bg_img'] == null ? null : BgImg.fromJson(json['bg_img']);
-    blockedType = json['blocked_type'];
+    blockedType = SafeType.toInt(json['blocked_type']);
     button = json['button'] == null ? null : Button.fromJson(json['button']);
     title = json['title'];
     hintMessage = json['hint_message'];
@@ -330,15 +331,15 @@ class Button {
   Check? check;
 
   Button.fromJson(Map<String, dynamic> json) {
-    handleType = json['handle_type'];
+    handleType = SafeType.toInt(json['handle_type']);
     icon = json['icon'];
     jumpUrl = json['jump_url'];
     text = json['text'];
     jumpStyle = json['jump_style'] == null
         ? null
         : JumpStyle.fromJson(json['jump_style']);
-    status = json['status'];
-    type = json['type'];
+    status = SafeType.toInt(json['status']);
+    type = SafeType.toInt(json['type']);
     check = json['check'] == null ? null : Check.fromJson(json['check']);
   }
 }
@@ -348,7 +349,7 @@ class Check {
   String? text;
 
   Check.fromJson(Map<String, dynamic> json) {
-    disable = json['disable'];
+    disable = SafeType.toInt(json['disable']);
     text = json['text'];
   }
 }
@@ -371,7 +372,7 @@ class Basic {
 
   Basic.fromJson(Map<String, dynamic> json) {
     commentIdStr = json['comment_id_str'];
-    commentType = json['comment_type'];
+    commentType = SafeType.toInt(json['comment_type']);
     likeIcon = json['like_icon'];
     ridStr = json['rid_str'];
   }
@@ -397,7 +398,7 @@ class ModuleAuthorModel extends Avatar {
     label = json['label'];
     pubAction = json['pub_action'];
     pubTime = json['pub_time'];
-    pubTs = json['pub_ts'] == 0 ? null : json['pub_ts'];
+    pubTs = SafeType.toInt(json['pub_ts']);
     type = json['type'];
     if (PendantAvatar.showDynDecorate) {
       decorate = json['decorate'] == null
@@ -429,10 +430,10 @@ class Decorate {
   factory Decorate.fromJson(Map<String, dynamic> json) => Decorate(
     cardUrl: json["card_url"],
     fan: json["fan"] == null ? null : Fan.fromJson(json["fan"]),
-    id: json["id"],
+    id: SafeType.toInt(json["id"]),
     jumpUrl: json["jump_url"],
     name: json["name"],
-    type: json["type"],
+    type: SafeType.toInt(json["type"]),
   );
 }
 
@@ -456,7 +457,7 @@ class Fan {
     isFan: json["is_fan"],
     numPrefix: json["num_prefix"],
     numStr: json["num_str"],
-    number: json["number"],
+    number: SafeType.toInt(json["number"]),
   );
 }
 
@@ -588,7 +589,7 @@ class MatchInfo {
     rightTeam: json["right_team"] == null
         ? null
         : TTeam.fromJson(json["right_team"]),
-    status: json["status"],
+    status: SafeType.toInt(json["status"]),
     subTitle: json["sub_title"],
     title: json["title"],
   );
@@ -606,7 +607,7 @@ class TTeam {
   });
 
   factory TTeam.fromJson(Map<String, dynamic> json) => TTeam(
-    id: json["id"],
+    id: SafeType.toInt(json["id"]),
     name: json["name"],
     pic: json["pic"],
   );
@@ -645,7 +646,7 @@ class AddCommon {
     headText: json["head_text"],
     idStr: json["id_str"],
     jumpUrl: json["jump_url"],
-    style: json["style"],
+    style: SafeType.toInt(json["style"]),
     subType: json["sub_type"],
     title: json["title"],
   );
@@ -681,12 +682,12 @@ class UpowerLottery {
     desc: json["desc"] == null ? null : Desc.fromJson(json["desc"]),
     hint: json["hint"] == null ? null : Hint.fromJson(json["hint"]),
     jumpUrl: json["jump_url"],
-    rid: json["rid"],
-    state: json["state"],
+    rid: SafeType.toInt(json["rid"]),
+    state: SafeType.toInt(json["state"]),
     title: json["title"],
-    upMid: json["up_mid"],
-    upowerActionState: json["upower_action_state"],
-    upowerLevel: json["upower_level"],
+    upMid: SafeType.toInt(json["up_mid"]),
+    upowerActionState: SafeType.toInt(json["upower_action_state"]),
+    upowerLevel: SafeType.toInt(json["upower_level"]),
   );
 }
 
@@ -700,7 +701,7 @@ class Hint {
   });
 
   factory Hint.fromJson(Map<String, dynamic> json) => Hint(
-    style: json["style"],
+    style: SafeType.toInt(json["style"]),
     text: json["text"],
   );
 }
@@ -746,17 +747,15 @@ class Vote {
 
   Vote.fromJson(Map<String, dynamic> json) {
     desc = json['desc'];
-    choiceCnt = json['choice_cnt'];
+    choiceCnt = SafeType.toInt(json['choice_cnt']);
     share = json['share'];
-    defaultShare = json['default_share'];
-    endTime = json['end_time'] is int
-        ? json['end_time']
-        : int.parse(json['end_time']);
-    joinNum = json['join_num'];
-    status = json['status'];
-    type = json['type'];
-    uid = json['uid'];
-    voteId = json['vote_id'];
+    defaultShare = SafeType.toInt(json['default_share']);
+    endTime = SafeType.toInt(json['end_time']);
+    joinNum = SafeType.toInt(json['join_num']);
+    status = SafeType.toInt(json['status']);
+    type = SafeType.toInt(json['type']);
+    uid = SafeType.toInt(json['uid']);
+    voteId = SafeType.toInt(json['vote_id']);
   }
 }
 
@@ -828,13 +827,13 @@ class Reserve {
     desc2 = json['desc2'] == null ? null : Desc.fromJson(json['desc2']);
     desc3 = json['desc3'] == null ? null : Desc.fromJson(json['desc3']);
     jumpUrl = json['jump_url'];
-    reserveTotal = json['reserve_total'];
-    rid = json['rid'];
-    state = json['state'];
-    state = json['state'];
-    stype = json['stype'];
+    reserveTotal = SafeType.toInt(json['reserve_total']);
+    rid = SafeType.toInt(json['rid']);
+    state = SafeType.toInt(json['state']);
+    state = SafeType.toInt(json['state']);
+    stype = SafeType.toInt(json['stype']);
     title = json['title'];
-    upMid = json['up_mid'];
+    upMid = SafeType.toInt(json['up_mid']);
   }
 }
 
@@ -855,11 +854,11 @@ class ReserveBtn {
   String? jumpUrl;
 
   ReserveBtn.fromJson(Map<String, dynamic> json) {
-    status = json['status'];
-    type = json['type'];
+    status = SafeType.toInt(json['status']);
+    type = SafeType.toInt(json['type']);
     checkText = json['check']?['text'] ?? '已预约';
     uncheckText = json['uncheck']?['text'] ?? '预约';
-    disable = json['uncheck']?['disable'];
+    disable = SafeType.toInt(json['uncheck']?['disable']);
     jumpText = json['jump_style']?['text'];
     jumpUrl = json['jump_url'];
   }
@@ -879,7 +878,7 @@ class Desc {
   String? jumpUrl;
 
   Desc.fromJson(Map<String, dynamic> json) {
-    style = json['style'];
+    style = SafeType.toInt(json['style']);
     text = json['text'];
     visible = json['visible'];
     jumpUrl = json["jump_url"];
@@ -1046,7 +1045,7 @@ class Music {
   String? label;
 
   Music.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = SafeType.toInt(json['id']);
     cover = json['cover'];
     title = json['title'];
     label = json['label'];
@@ -1103,7 +1102,7 @@ class LiveRcmd {
     content: json["content"] == null
         ? null
         : LiveRcmdContent.fromJson(jsonDecode(json["content"])),
-    reserveType: json["reserve_type"],
+    reserveType: SafeType.toInt(json["reserve_type"]),
   );
 }
 
@@ -1118,7 +1117,7 @@ class LiveRcmdContent {
 
   factory LiveRcmdContent.fromJson(Map<String, dynamic> json) =>
       LiveRcmdContent(
-        type: json["type"],
+        type: SafeType.toInt(json["type"]),
         livePlayInfo: json["live_play_info"] == null
             ? null
             : LivePlayInfo.fromJson(json["live_play_info"]),
@@ -1165,25 +1164,25 @@ class LivePlayInfo {
   });
 
   factory LivePlayInfo.fromJson(Map<String, dynamic> json) => LivePlayInfo(
-    roomId: json["room_id"],
-    uid: json["uid"],
-    liveStatus: json["live_status"],
-    roomType: json["room_type"],
-    playType: json["play_type"],
+    roomId: SafeType.toInt(json["room_id"]),
+    uid: SafeType.toInt(json["uid"]),
+    liveStatus: SafeType.toInt(json["live_status"]),
+    roomType: SafeType.toInt(json["room_type"]),
+    playType: SafeType.toInt(json["play_type"]),
     title: json["title"],
     cover: json["cover"],
-    online: json["online"],
-    areaId: json["area_id"],
+    online: SafeType.toInt(json["online"]),
+    areaId: SafeType.toInt(json["area_id"]),
     areaName: json["area_name"],
-    parentAreaId: json["parent_area_id"],
+    parentAreaId: SafeType.toInt(json["parent_area_id"]),
     parentAreaName: json["parent_area_name"],
-    liveScreenType: json["live_screen_type"],
-    liveStartTime: json["live_start_time"],
+    liveScreenType: SafeType.toInt(json["live_screen_type"]),
+    liveStartTime: SafeType.toInt(json["live_start_time"]),
     link: json["link"],
     watchedShow: json["watched_show"] == null
         ? null
         : WatchedShow.fromJson(json["watched_show"]),
-    roomPaidType: json["room_paid_type"],
+    roomPaidType: SafeType.toInt(json["room_paid_type"]),
   );
 }
 
@@ -1199,7 +1198,7 @@ class DynamicTopicModel {
   String? name;
 
   DynamicTopicModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = SafeType.toInt(json['id']);
     jumpUrl = json['jump_url'];
     name = json['name'];
   }
@@ -1240,7 +1239,7 @@ class DynamicArchiveModel {
 
   DynamicArchiveModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    aid = json['aid'] is String ? int.parse(json['aid']) : json['aid'];
+    aid = SafeType.toInt(json['aid']);
     badge = json['badge'] == null ? null : Badge.fromJson(json['badge']);
     bvid = json['bvid'] ?? json['epid'].toString() ?? ' ';
     cover = json['cover'];
@@ -1369,9 +1368,9 @@ class Emoji {
     // webpUrl = json['webp_url'];
     // gifUrl = json['gif_url'];
     url = json['webp_url'] ?? json['gif_url'] ?? json['icon_url'];
-    size = json['size'] ?? 1;
+    size = SafeType.toNum(json['size']) ?? 1;
     text = json['text'];
-    type = json['type'];
+    type = SafeType.toNum(json['type']);
   }
 }
 
@@ -1564,17 +1563,10 @@ class DynamicStat {
   bool? status;
 
   DynamicStat.fromJson(Map<String, dynamic> json) {
-    count = json['count'] == 0 ? null : _parseInt(json['count']);
+    count = SafeType.toInt(json['count']);
     forbidden = json['forbidden'];
     status = json['status'];
   }
-
-  static int? _parseInt(dynamic x) => switch (x) {
-    int() => x,
-    String() => int.tryParse(x),
-    double() => x.toInt(),
-    _ => null,
-  };
 }
 
 class Stat {
