@@ -8,7 +8,6 @@ import 'package:PiliPro/models_new/fav/fav_folder/data.dart';
 import 'package:PiliPro/pages/common/common_data_controller.dart';
 import 'package:PiliPro/services/account_service.dart';
 import 'package:PiliPro/utils/accounts.dart';
-import 'package:PiliPro/utils/accounts/account.dart';
 import 'package:PiliPro/utils/login_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
 import 'package:PiliPro/utils/storage_key.dart';
@@ -30,8 +29,7 @@ class MineController
   Rx<UserStat> userStat = UserStat().obs;
 
   Rx<ThemeType> themeType = ThemeType.system.obs;
-  static RxBool anonymity =
-      (Accounts.account.isNotEmpty && !Accounts.heartbeat.isLogin).obs;
+  static RxBool anonymity = false.obs;
   ThemeType get nextThemeType =>
       ThemeType.values[(themeType.value.index + 1) % ThemeType.values.length];
 
@@ -151,7 +149,7 @@ class MineController
   }
 
   static void onChangeAnonymity() {
-    if (Accounts.account.isEmpty) {
+    if (!Accounts.currentAccount.isLogin) {
       SmartDialog.showToast('请先登录');
       return;
     }
@@ -159,16 +157,13 @@ class MineController
     anonymity.value = newVal;
     if (newVal) {
       SmartDialog.dismiss();
-      SmartDialog.show<bool>(
+      SmartDialog.show(
         clickMaskDismiss: false,
         usePenetrate: true,
         displayTime: const Duration(seconds: 2),
         alignment: Alignment.bottomCenter,
         builder: (context) {
           final theme = Theme.of(context);
-          final style = TextStyle(
-            color: theme.colorScheme.onSecondaryContainer,
-          );
           return ColoredBox(
             color: theme.colorScheme.secondaryContainer,
             child: Padding(
@@ -193,48 +188,18 @@ class MineController
                   Text(
                     '搜索、观看视频/直播不携带身份信息（包含大会员）\n'
                     '不产生查询或播放记录\n'
-                    '点赞等其它操作不受影响\n'
+                    '点赞、评论等其它操作不受影响\n'
                     '(前往隐私设置了解详情)',
                     style: theme.textTheme.bodySmall,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          SmartDialog.dismiss(result: true);
-                          SmartDialog.showToast('已设为永久无痕模式');
-                        },
-                        child: Text('保存为永久', style: style),
-                      ),
-                      const SizedBox(width: 10),
-                      TextButton(
-                        onPressed: () {
-                          SmartDialog.dismiss();
-                          SmartDialog.showToast('已设为临时无痕模式');
-                        },
-                        child: Text('仅本次（默认）', style: style),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
           );
         },
-      ).then((res) {
-        // Note: 永久/临时模式的区分已移除，现在统一切换到匿名账户
-        // 用户可以通过账户管理界面切换回登录账户
-        if (res != false) {
-          Accounts.switchAccount(AnonymousAccount());
-        }
-      });
+      );
     } else {
-      // 退出无痕模式，切换回之前的登录账户
-      if (Accounts.accountList.isNotEmpty) {
-        Accounts.switchAccount(Accounts.accountList.first);
-      }
-      SmartDialog.dismiss(result: false);
+      SmartDialog.dismiss();
       SmartDialog.show(
         clickMaskDismiss: false,
         usePenetrate: true,

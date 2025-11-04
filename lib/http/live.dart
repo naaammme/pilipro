@@ -4,7 +4,6 @@ import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/login.dart';
 import 'package:PiliPro/http/ua_type.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/common/live_search_type.dart';
 import 'package:PiliPro/models_new/live/live_area_list/area_item.dart';
 import 'package:PiliPro/models_new/live/live_area_list/area_list.dart';
@@ -27,7 +26,7 @@ import 'package:PiliPro/utils/wbi_sign.dart';
 import 'package:dio/dio.dart';
 
 abstract final class LiveHttp {
-  static Account get recommend => Accounts.get(AccountType.recommend);
+  static Account get recommend => Accounts.currentAccount;
 
   static Future sendLiveMsg({
     required Object roomId,

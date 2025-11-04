@@ -9,7 +9,6 @@ import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/ua_type.dart';
 import 'package:PiliPro/http/video.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/common/audio_normalization.dart';
 import 'package:PiliPro/models/common/sponsor_block/skip_type.dart';
 import 'package:PiliPro/models/common/super_resolution_type.dart';
@@ -136,7 +135,7 @@ class PlPlayerController {
   int? width;
   int? height;
 
-  late final tryLook = !Accounts.get(AccountType.video).isLogin && Pref.p1080;
+  late final tryLook = !Accounts.currentAccount.isLogin && Pref.p1080;
 
   late DataSource dataSource;
 

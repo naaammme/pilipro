@@ -1,8 +1,8 @@
 import 'package:PiliPro/http/init.dart';
-import 'package:PiliPro/models/common/account_type.dart';
-import 'package:PiliPro/pages/mine/controller.dart';
+import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
 import 'package:PiliPro/utils/login_utils.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:hive/hive.dart';
 
 abstract class Accounts {
@@ -30,55 +30,23 @@ abstract class Accounts {
         return deletedEntries > 2;
       },
     );
-    // await _migrate();
   }
-
-  // static Future<void> _migrate() async {
-  //   final Directory tempDir = await getApplicationSupportDirectory();
-  //   final String tempPath = "${tempDir.path}/.plpl/";
-  //   final Directory dir = Directory(tempPath);
-  //   if (dir.existsSync()) {
-  //     if (kDebugMode) debugPrint('migrating...');
-  //     final cookieJar = PersistCookieJar(
-  //       ignoreExpires: true,
-  //       storage: FileStorage(tempPath),
-  //     );
-  //     await cookieJar.forceInit();
-  //     final cookies = DefaultCookieJar(ignoreExpires: true)
-  //       ..domainCookies.addAll(cookieJar.domainCookies);
-  //     final localAccessKey = GStorage.localCache.get(
-  //       'accessKey',
-  //       defaultValue: {},
-  //     );
-
-  //     final isLogin =
-  //         cookies.domainCookies['bilibili.com']?['/']?['SESSDATA'] != null;
-
-  //     await Future.wait([
-  //       GStorage.localCache.delete('accessKey'),
-  //       GStorage.localCache.delete('danmakuFilterRule'),
-  //       GStorage.localCache.delete('blackMidsList'),
-  //       dir.delete(recursive: true),
-  //       if (isLogin)
-  //         LoginAccount(
-  //           cookies,
-  //           localAccessKey['value'],
-  //           localAccessKey['refresh'],
-  //           AccountType.values.toSet(),
-  //         ).onChange(),
-  //     ]);
-  //     if (kDebugMode) debugPrint('migrated successfully');
-  //   }
-  // }
 
   static Future<void> refresh() async {
     // 尝试从Hive中恢复最后使用的账号
     if (account.isNotEmpty) {
-      // 默认使用第一个账号作为当前账号
       _currentAccount = account.values.first;
-
-      // 如果之前有保存当前账号的mid，则恢复它
-      // TODO: 可以在后续添加持久化当前账号的逻辑
+      UserInfoData? currentUserInfo = Pref.userInfoCache;
+      if (currentUserInfo?.mid != null) {
+        final foundAccount = account.values.firstWhere(
+          (account) => account.mid == currentUserInfo!.mid,
+          orElse: () => account.values.first,
+        );
+        _currentAccount = foundAccount;
+      } else {
+        // 如果没有缓存，默认使用第一个账号作为当前账号
+        _currentAccount = account.values.first;
+      }
     }
 
     // 激活当前账号的buvid
@@ -129,12 +97,10 @@ abstract class Accounts {
     // 触发登录/登出回调
     if (newAccount.isLogin) {
       await LoginUtils.onLoginMain();
-      MineController.anonymity.value = false;
     } else {
       if (wasLogin) {
         await LoginUtils.onLogoutMain();
       }
-      MineController.anonymity.value = true;
     }
   }
 
@@ -142,10 +108,5 @@ abstract class Accounts {
   static Future<void> addAndSwitchAccount(LoginAccount newAccount) async {
     await newAccount.onChange(); // 保存到Hive
     await switchAccount(newAccount);
-  }
-
-  /// 兼容旧的get方法但现在统一返回当前账号
-  static Account get(AccountType key) {
-    return _currentAccount;
   }
 }

@@ -1,13 +1,15 @@
 import 'package:PiliPro/common/widgets/list_tile.dart';
 import 'package:PiliPro/common/widgets/view_safe_area.dart';
 import 'package:PiliPro/http/login.dart';
+// import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:flutter/material.dart' hide ListTile;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+// import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class AccountManagementPage extends StatefulWidget {
   const AccountManagementPage({super.key});
@@ -19,7 +21,6 @@ class AccountManagementPage extends StatefulWidget {
 class _AccountManagementPageState extends State<AccountManagementPage> {
   final Rx<Account> _currentAccount = Accounts.currentAccount.obs;
   final RxList<LoginAccount> _accounts = <LoginAccount>[].obs;
-  final Map<int, UserInfoData> _userInfoCache = {};
 
   @override
   void initState() {
@@ -30,23 +31,6 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
   void _loadAccounts() {
     _accounts.value = Accounts.accountList;
     _currentAccount.value = Accounts.currentAccount;
-
-    // 加载所有账号的用户信息
-    for (var account in _accounts) {
-      _loadUserInfo(account);
-    }
-  }
-
-  Future<void> _loadUserInfo(LoginAccount account) async {
-    if (_userInfoCache.containsKey(account.mid)) return;
-
-    try {
-      // UserHttp.userInfo() 没有mid参数，需要使用对应账户的上下文
-      // 这里简化为使用mid作为显示，如需完整信息可以调用其他API
-      // 暂时跳过用户信息加载
-    } catch (e) {
-      // 忽略错误，使用mid作为备用显示
-    }
   }
 
   Future<void> _switchAccount(Account account) async {
@@ -56,6 +40,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
     try {
       await Accounts.switchAccount(account);
       _currentAccount.value = account;
+      _loadAccounts(); // 重新加载账号列表
       SmartDialog.dismiss();
       SmartDialog.showToast('已切换账号');
     } catch (e) {
@@ -148,7 +133,10 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildAccountInfo(currentAccount, isCurrentAccount: true),
+                        _buildAccountInfo(
+                          currentAccount,
+                          isCurrentAccount: true,
+                        ),
                       ],
                     ),
                   ),
@@ -160,9 +148,9 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ListTile(
-                    leading: Icon(MdiIcons.incognito),
+                    leading: const Icon(Icons.person_outline),
                     title: const Text('切换到游客模式'),
-                    subtitle: const Text('无痕浏览，不记录历史'),
+                    subtitle: const Text('退出当前账号，使用未登录状态'),
                     onTap: () => _switchAccount(AnonymousAccount()),
                   ),
                 ),
@@ -186,7 +174,6 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                   return ListTile(
                     leading: _buildAvatar(account),
                     title: _buildAccountTitle(account),
-                    subtitle: Text('UID: ${account.mid}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -214,7 +201,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                             child: const Text('切换'),
                           ),
                         IconButton(
-                          icon: Icon(Icons.delete_outline),
+                          icon: const Icon(Icons.delete_outline),
                           onPressed: () => _removeAccount(account),
                           tooltip: '删除账号',
                         ),
@@ -249,11 +236,11 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
 
   Widget _buildAccountInfo(Account account, {bool isCurrentAccount = false}) {
     if (!account.isLogin) {
-      return Row(
+      return const Row(
         children: [
-          Icon(MdiIcons.incognito, size: 40, color: Colors.grey),
-          const SizedBox(width: 12),
-          const Expanded(
+          Icon(Icons.person_outline, size: 40, color: Colors.grey),
+          SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -262,7 +249,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '未登录',
+                  '未登录状态',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -274,9 +261,54 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
 
     final loginAccount = account as LoginAccount;
 
+    // 如果是当前账户，尝试从缓存获取用户信息
+    if (isCurrentAccount) {
+      UserInfoData? userInfo = Pref.userInfoCache;
+      if (userInfo != null &&
+          userInfo.mid == loginAccount.mid &&
+          userInfo.uname != null) {
+        return Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: userInfo.face != null
+                  ? NetworkImage(userInfo.face!)
+                  : null,
+              child: userInfo.face == null
+                  ? const Icon(Icons.person, size: 24)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    userInfo.uname!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    '已登录',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+    }
+
+    // 其他账号或缓存不可用时，只显示UID
     return Row(
       children: [
-        _buildAvatar(loginAccount),
+        const CircleAvatar(
+          radius: 20,
+          child: Icon(Icons.person, size: 24),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -284,7 +316,10 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
             children: [
               Text(
                 'UID ${loginAccount.mid}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const Text(
                 '已登录',
@@ -298,8 +333,8 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
   }
 
   Widget _buildAvatar(LoginAccount account) {
-    // 简化：使用图标而不是头像
-    return CircleAvatar(
+    // 简化：使用统一的图标
+    return const CircleAvatar(
       radius: 20,
       child: Icon(Icons.person, size: 24),
     );

@@ -12,7 +12,6 @@ import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/http/video.dart';
 import 'package:PiliPro/main.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/common/sponsor_block/action_type.dart';
 import 'package:PiliPro/models/common/sponsor_block/post_segment_model.dart';
 import 'package:PiliPro/models/common/sponsor_block/segment_model.dart';
@@ -250,7 +249,7 @@ class VideoDetailController extends GetxController
     imageStatus = false;
   }
 
-  final isLoginVideo = Accounts.get(AccountType.video).isLogin;
+  final isLoginVideo = Accounts.currentAccount.isLogin;
 
   @override
   void onInit() {

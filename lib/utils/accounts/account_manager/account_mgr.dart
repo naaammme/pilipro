@@ -1,10 +1,9 @@
-// edit from package:dio_cookie_manager
 import 'dart:async';
 import 'dart:io';
 
 import 'package:PiliPro/http/api.dart';
 import 'package:PiliPro/http/constants.dart';
-import 'package:PiliPro/models/common/account_type.dart';
+import 'package:PiliPro/pages/mine/controller.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
 import 'package:PiliPro/utils/app_sign.dart';
@@ -20,99 +19,6 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 final _setCookieReg = RegExp('(?<=)(,)(?=[^;]+?=)');
 
 class AccountManager extends Interceptor {
-  static const Map<AccountType, Set<String>> apiTypeSet = {
-    AccountType.heartbeat: {
-      Api.videoIntro,
-      Api.replyList,
-      Api.replyReplyList,
-
-      // history
-      Api.heartBeat,
-      Api.historyReport,
-      Api.roomEntryAction,
-      Api.liveLikeReport,
-      Api.mediaListHistory,
-      // Api.historyList,
-      // Api.pauseHistory,
-      // Api.clearHistory,
-      // Api.delHistory,
-      // Api.searchHistory,
-      // Api.historyStatus,
-      // progress
-      Api.pgcInfo,
-      Api.pugvInfo,
-
-      Api.ab2c,
-      Api.liveRoomInfo,
-      Api.liveRoomInfoH5,
-      Api.onlineTotal,
-      Api.dynamicDetail,
-      Api.aiConclusion,
-      Api.getSeasonDetailApi,
-      Api.liveRoomDmToken,
-      Api.liveRoomDmPrefetch,
-      Api.superChatMsg,
-      Api.searchByType,
-      Api.dynSearch,
-      Api.searchArchive,
-
-      // Api.memberInfo,
-      // Api.bgmDetail,
-      // Api.space,
-      // Api.spaceAudio,
-      // Api.spaceComic,
-      // Api.spaceArchive,
-      // Api.spaceChargingArchive,
-      // Api.spaceSeason,
-      // Api.spaceSeries,
-      // Api.spaceBangumi,
-      // Api.spaceOpus,
-      // Api.spaceFav,
-      // Api.seasonSeries,
-      // Api.matchInfo,
-      // Api.articleList,
-      // Api.opusDetail,
-      // Api.articleView,
-      // Api.articleInfo,
-    },
-    AccountType.recommend: {
-      Api.recommendListWeb,
-      Api.recommendListApp,
-      Api.feedDislike,
-      Api.feedDislikeCancel,
-      Api.hotList,
-      Api.relatedList,
-      Api.hotSearchList, // 不同账号搜索结果可能不一样
-      Api.searchDefault,
-      Api.searchSuggest,
-      Api.liveList,
-      Api.searchTrending,
-      Api.searchRecommend,
-      Api.getRankApi,
-      Api.pgcRank,
-      Api.pgcSeasonRank,
-      Api.pgcIndexResult,
-      Api.popularSeriesOne,
-      Api.popularSeriesList,
-      Api.popularPrecious,
-      Api.liveAreaList,
-      Api.liveFeedIndex,
-      Api.liveSecondList,
-      Api.liveRoomAreaList,
-      Api.liveSearch,
-      Api.bgmRecommend,
-      Api.dynTopicRcmd,
-      Api.topicFeed,
-      Api.topicTop,
-    },
-    // progress
-    AccountType.video: {
-      Api.ugcUrl,
-      Api.pgcUrl,
-      Api.pugvUrl,
-    },
-  };
-
   static const loginApi = {
     Api.getTVCode,
     Api.qrcodePoll,
@@ -331,19 +237,59 @@ class AccountManager extends Interceptor {
         path.contains('biliimg.com');
   }
 
-  Account _findAccount(String path) => loginApi.contains(path)
-      ? AnonymousAccount()
-      : Accounts.currentAccount; // 简化：统一使用当前账号
+  // 判断是否为隐私敏感 API（无痕模式下需要隐藏身份）
+  static bool _isPrivacySensitiveApi(String path) {
+    // 历史/观看类 API
+    const historyApis = {
+      Api.heartBeat,
+      Api.historyReport,
+      Api.roomEntryAction,
+      Api.liveLikeReport,
+      Api.mediaListHistory,
+    };
 
-  // 旧的路由逻辑如下
-  // Account _findAccountOld(String path) => loginApi.contains(path)
-  //     ? AnonymousAccount()
-  //     : Accounts.get(
-  //         AccountType.values.firstWhere(
-  //           (i) => apiTypeSet[i]?.contains(path) == true,
-  //           orElse: () => AccountType.main,
-  //         ),
-  //       );
+    // 推荐/搜索类 API
+    const recommendApis = {
+      Api.recommendListWeb,
+      Api.recommendListApp,
+      Api.feedDislike,
+      Api.feedDislikeCancel,
+      Api.hotList,
+      Api.relatedList,
+      Api.hotSearchList,
+      Api.searchDefault,
+      Api.searchSuggest,
+      Api.liveSearch,
+      Api.searchTrending,
+      Api.searchRecommend,
+    };
+
+    // 视频流类 API
+    const videoApis = {
+      Api.ugcUrl,
+      Api.pgcUrl,
+      Api.pugvUrl,
+    };
+
+    return historyApis.contains(path) ||
+           recommendApis.contains(path) ||
+           videoApis.contains(path);
+  }
+
+  Account _findAccount(String path) {
+    // 登录类 API 始终使用匿名账户
+    if (loginApi.contains(path)) {
+      return AnonymousAccount();
+    }
+
+    // 无痕模式下，隐私敏感 API 使用匿名账户（不携带 Cookie/CSRF）
+    if (MineController.anonymity.value && _isPrivacySensitiveApi(path)) {
+      return AnonymousAccount();
+    }
+
+    // 其他情况使用当前登录账户
+    return Accounts.currentAccount;
+  }
 
   static Future<String> dioError(DioException error) async {
     switch (error.type) {

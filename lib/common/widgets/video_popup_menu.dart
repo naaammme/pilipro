@@ -1,6 +1,5 @@
 import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/http/video.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/home/rcmd/result.dart';
 import 'package:PiliPro/models/model_video.dart';
 import 'package:PiliPro/models_new/space/space_archive/item.dart';
@@ -231,7 +230,7 @@ class VideoCustomActions {
           'dislike',
           const Icon(MdiIcons.thumbDownOutline, size: 16),
           () {
-            String? accessKey = Accounts.get(AccountType.recommend).accessKey;
+            String? accessKey = Accounts.currentAccount.accessKey;
             if (accessKey == null || accessKey == "") {
               SmartDialog.showToast("请退出账号后重新登录");
               return;

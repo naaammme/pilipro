@@ -6,7 +6,6 @@ import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/login.dart';
 import 'package:PiliPro/http/ua_type.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/models/common/video/video_type.dart';
 import 'package:PiliPro/models/home/rcmd/result.dart';
 import 'package:PiliPro/models/model_hot_video_item.dart';
@@ -461,7 +460,7 @@ class VideoHttp {
     int? reasonId,
     int? feedbackId,
   }) async {
-    if (Accounts.get(AccountType.recommend).accessKey.isNullOrEmpty) {
+    if (Accounts.currentAccount.accessKey.isNullOrEmpty) {
       return {'status': false, 'msg': "请退出账号后重新登录"};
     }
     assert((reasonId != null) ^ (feedbackId != null));
@@ -490,7 +489,7 @@ class VideoHttp {
     int? reasonId,
     int? feedbackId,
   }) async {
-    if (Accounts.get(AccountType.recommend).accessKey.isNullOrEmpty) {
+    if (Accounts.currentAccount.accessKey.isNullOrEmpty) {
       return {'status': false, 'msg': "请退出账号后重新登录"};
     }
     var res = await Request().get(

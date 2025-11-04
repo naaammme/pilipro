@@ -1,5 +1,4 @@
 import 'package:PiliPro/common/constants.dart';
-import 'package:PiliPro/models/common/account_type.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/id_utils.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -9,9 +8,6 @@ sealed class Account {
   Map<String, dynamic>? toJson() => null;
 
   Future<void> onChange() => Future.value();
-
-  @Deprecated('AccountType is deprecated, use Accounts.currentAccount instead')
-  Set<AccountType> get type => const {};
 
   bool get activited => false;
 
@@ -49,10 +45,6 @@ class LoginAccount extends Account {
   @override
   @HiveField(2)
   final String? refresh;
-  @override
-  @Deprecated('AccountType is deprecated')
-  @HiveField(3)
-  final Set<AccountType> type;
 
   @override
   bool activited = false;
@@ -90,7 +82,6 @@ class LoginAccount extends Account {
     'cookies': cookieJar.toJson(),
     'accessKey': accessKey,
     'refresh': refresh,
-    'type': type.map((i) => i.index).toList(),
   };
 
   late final String _midStr = cookieJar
@@ -103,9 +94,8 @@ class LoginAccount extends Account {
   LoginAccount(
     this.cookieJar,
     this.accessKey,
-    this.refresh, [
-    @Deprecated('AccountType is deprecated') Set<AccountType>? type,
-  ]) : type = type ?? {} {
+    this.refresh,
+  ) {
     cookieJar.setBuvid3();
   }
 
@@ -113,7 +103,6 @@ class LoginAccount extends Account {
     BiliCookieJar.fromJson(json['cookies']),
     json['accessKey'],
     json['refresh'],
-    (json['type'] as Iterable?)?.map((i) => AccountType.values[i]).toSet(),
   );
 
   @override
@@ -133,9 +122,6 @@ class AnonymousAccount extends Account {
   final String? accessKey = null;
   @override
   final String? refresh = null;
-  @override
-  @Deprecated('AccountType is deprecated')
-  final Set<AccountType> type = {};
   @override
   final int mid = 0;
   @override

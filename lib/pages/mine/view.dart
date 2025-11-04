@@ -162,6 +162,16 @@ class _MediaPageState extends CommonPageState<MinePage, MineController>
           ),
           msgBadge(_mainController),
         ],
+        IconButton(
+          iconSize: 22,
+          padding: const EdgeInsets.all(8),
+          style: const ButtonStyle(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          tooltip: '账户管理',
+          onPressed: () => Get.toNamed('/accountManagement'),
+          icon: const Icon(Icons.manage_accounts_outlined),
+        ),
         Obx(
           () {
             final anonymity = MineController.anonymity.value;

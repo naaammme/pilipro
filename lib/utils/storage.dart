@@ -6,7 +6,6 @@ import 'package:PiliPro/models/user/danmaku_rule_adapter.dart';
 import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/accounts/account_adapter.dart';
-import 'package:PiliPro/utils/accounts/account_type_adapter.dart';
 import 'package:PiliPro/utils/accounts/cookie_jar_adapter.dart';
 import 'package:PiliPro/utils/set_int_adapter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -81,7 +80,6 @@ abstract class GStorage {
       ..registerAdapter(LevelInfoAdapter())
       ..registerAdapter(BiliCookieJarAdapter())
       ..registerAdapter(LoginAccountAdapter())
-      ..registerAdapter(AccountTypeAdapter())
       ..registerAdapter(SetIntAdapter())
       ..registerAdapter(RuleFilterAdapter());
   }
