@@ -27,7 +27,7 @@
 ## 项目说明:
 - 本仓库克隆自[piliplus](https://github.com/bggRGjQaUbCoE/PiliPlus),对原项目进行了最小化改动
 - 本仓库保留了原项目[1.1.4.13版本](https://github.com/bggRGjQaUbCoE/PiliPlus/releases/tag/1.1.4.13)的全部功能,另外新增了自动记录保存视频评论,视频弹幕,直播弹幕功能(数据完全保存于本地数据库),同时增加了视频/直播的应用内小窗功能
-- 本项目仅供个人使用,只增加本人需要的功能,并且只打包了Android客户端,未来很可能只根据本人需要更新
+- 本项目仅供个人使用,只增加本人需要的功能,并且只打包了Android客户端,需要其他客户端请自行编译,本人不会也不会打包其他平台
 - 本人水平有限,项目可能存在一些奇怪的bug,欢迎提交[issues](https://github.com/naaammme/pilipro/issues),介意者请勿使用可以移步至原仓库使用[piliplus](https://github.com/bggRGjQaUbCoE/PiliPlus)
 
 ## refactor
@@ -218,10 +218,10 @@
 ## 声明
 
 此项目（PiliPro）是个人为了兴趣而开发, 仅用于学习和测试，请于下载后24小时内删除。
-所用API皆从官方网站收集, 不提供任何破解内容。
-在此致敬原作者：[guozhigq/pilipala](https://github.com/guozhigq/pilipala)
-在此致敬上上游作者：[orz12/PiliPalaX](https://github.com/orz12/PiliPalaX)
-在此致敬上游作者：[bggRGjQaUbCoE/PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus)
+所用API皆从官方网站收集, 不提供任何破解内容。  
+在此致敬原作者：[guozhigq/pilipala](https://github.com/guozhigq/pilipala)  
+在此致敬上上游作者：[orz12/PiliPalaX](https://github.com/orz12/PiliPalaX)  
+在此致敬上游作者：[bggRGjQaUbCoE/PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus)  
 本仓库只作最小化改动增加更多实用功能,感谢原作者的开源精神。
 
 感谢使用
