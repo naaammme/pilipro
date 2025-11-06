@@ -52,6 +52,7 @@ import 'package:PiliPro/utils/num_utils.dart';
 import 'package:PiliPro/utils/page_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
 import 'package:PiliPro/utils/storage_key.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:auto_orientation/auto_orientation.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
@@ -1438,7 +1439,8 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                     videoDetailCtr: videoDetailController,
                     heroTag: heroTag,
                   ),
-            danmuWidget: isPipMode && pipNoDanmaku
+            // 小窗模式下不显示弹幕(应该没人需要吧)，避免 Obx 订阅清理导致的空指针错误
+            danmuWidget: isPipMode
                 ? null
                 : Obx(
                     () => PlDanmaku(
@@ -2248,8 +2250,9 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
       // 使用 VideoStackManager 检查路由栈中是否还有其他视频页
       final bool isReturningToVideo = VideoStackManager.isReturningToVideo();
 
-      // 如果视频正在播放，启动 PiP
-      if (plPlayerController?.playerStatus.playing == true &&
+      // 如果视频正在播放且开关已开启，启动 PiP
+      if (Pref.enableInAppPip &&
+          plPlayerController?.playerStatus.playing == true &&
           !PipOverlayService.isInPipMode &&
           !isReturningToVideo) {
         // 添加 !isReturningToVideo 条件

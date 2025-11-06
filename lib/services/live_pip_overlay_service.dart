@@ -167,8 +167,8 @@ class LivePipWidget extends StatefulWidget {
 
 class _LivePipWidgetState extends State<LivePipWidget> {
   // 小窗位置和尺寸
-  double _left = 16;
-  double _top = 100;
+  double? _left; // 改为可空，表示尚未初始化
+  double? _top; // 改为可空，表示尚未初始化
   final double _width = 200;
   final double _height = 112; // 16:9 比例
 
@@ -183,24 +183,18 @@ class _LivePipWidgetState extends State<LivePipWidget> {
   @override
   void initState() {
     super.initState();
-
-    // 初始化位置（右下角）
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final screenSize = MediaQuery.of(context).size;
-        setState(() {
-          _left = screenSize.width - _width - 16;
-          _top = screenSize.height - _height - 100;
-        });
-      }
-    });
-
     _startHideTimer();
   }
 
   @override
   void dispose() {
     _hideTimer?.cancel();
+    // 清理静态回调，防止内存泄漏
+    // 即使 stopLivePip 没被调用（如App异常退出），也能在widget销毁时清理
+    if (LivePipOverlayService._overlayEntry != null) {
+      LivePipOverlayService._onCloseCallback = null;
+      LivePipOverlayService._onReturnCallback = null;
+    }
     super.dispose();
   }
 
@@ -228,9 +222,13 @@ class _LivePipWidgetState extends State<LivePipWidget> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
+    // 第一次构建时初始化位置到右下角，不触发setState
+    _left ??= screenSize.width - _width - 16;
+    _top ??= screenSize.height - _height - 100;
+
     return Positioned(
-      left: _left,
-      top: _top,
+      left: _left!,
+      top: _top!,
       child: GestureDetector(
         // 点击显示/隐藏控件
         onTap: _onTap,
@@ -238,7 +236,7 @@ class _LivePipWidgetState extends State<LivePipWidget> {
         onPanStart: (details) {
           _hideTimer?.cancel();
           _dragStartOffset = details.globalPosition;
-          _dragStartPosition = Offset(_left, _top);
+          _dragStartPosition = Offset(_left!, _top!);
         },
         onPanUpdate: (details) {
           if (_dragStartOffset != null && _dragStartPosition != null) {

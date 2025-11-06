@@ -29,6 +29,7 @@ import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/cache_manage.dart';
 import 'package:PiliPro/utils/feed_back.dart';
 import 'package:PiliPro/utils/image_utils.dart';
+import 'package:PiliPro/utils/page_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
 import 'package:PiliPro/utils/storage_key.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
@@ -630,16 +631,21 @@ List<SettingsModel> get extraSettings => [
     setKey: SettingBoxKey.enableCommAntifraud,
     defaultVal: false,
   ),
-  const SettingsModel(
+  SettingsModel(
     settingsType: SettingsType.sw1tch,
     title: '使用「哔哩发评反诈」检查评论',
-    subtitle: '仅对Android生效',
-    leading: Icon(
+    subtitle: '仅对Android生效，需单独安装该应用。长按跳转下载',
+    leading: const Icon(
       FontAwesomeIcons.b,
       size: 22,
     ),
     setKey: SettingBoxKey.biliSendCommAntifraud,
     defaultVal: false,
+    onTap: () {
+      PageUtils.handleWebview(
+        'https://github.com/freedom-introvert/biliSendCommAntifraud',
+      );
+    },
   ),
   const SettingsModel(
     settingsType: SettingsType.sw1tch,

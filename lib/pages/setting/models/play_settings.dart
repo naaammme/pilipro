@@ -241,6 +241,14 @@ List<SettingsModel> get playSettings => [
   ],
   const SettingsModel(
     settingsType: SettingsType.sw1tch,
+    title: '应用内小窗',
+    subtitle: '退出视频/直播页面时自动以小窗形式继续播放',
+    leading: Icon(Icons.picture_in_picture_alt_outlined),
+    setKey: SettingBoxKey.enableInAppPip,
+    defaultVal: true,
+  ),
+  const SettingsModel(
+    settingsType: SettingsType.sw1tch,
     title: '全屏手势反向',
     subtitle: '默认播放器中部向上滑动进入全屏，向下退出\n开启后向下全屏，向上退出',
     leading: Icon(Icons.swap_vert),

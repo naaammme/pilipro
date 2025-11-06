@@ -179,7 +179,7 @@ Commit Hash: ${BuildConfig.commitHash}''',
             ListTile(
               onTap: () => Utils.channel.invokeMethod('linkVerifySettings'),
               leading: const Icon(MdiIcons.linkBoxOutline),
-              title: const Text('打开'),
+              title: const Text('打开受支持的链接'),
               trailing: Icon(
                 Icons.arrow_forward,
                 size: 16,
@@ -308,7 +308,10 @@ Commit Hash: ${BuildConfig.commitHash}''',
                         ]);
                         SmartDialog.showToast('重置成功');
                       },
-                      title: const Text('重置所有数据（含登录信息）', style: style),
+                      title: const Text(
+                        '清空所有数据（点击会清空一切数据!）',
+                        style: style,
+                      ),
                     ),
                   ],
                 );

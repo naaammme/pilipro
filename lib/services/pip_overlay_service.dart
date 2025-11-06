@@ -120,25 +120,26 @@ class PipOverlayService {
 }
 
 // PiP 小窗 Widget
+// TODO: 优化拖动体验，增加边缘吸附效果(或隐藏至边缘),优化拖动时的性能
 class PipWidget extends StatefulWidget {
   final Widget Function(bool isPipMode) videoPlayerBuilder;
   final VoidCallback onClose;
   final VoidCallback onTapToReturn;
 
   const PipWidget({
-    Key? key,
+    super.key,
     required this.videoPlayerBuilder,
     required this.onClose,
     required this.onTapToReturn,
-  }) : super(key: key);
+  });
 
   @override
   State<PipWidget> createState() => _PipWidgetState();
 }
 
 class _PipWidgetState extends State<PipWidget> {
-  double _left = 16;
-  double _top = 100;
+  double? _left; // 改为可空，表示尚未初始化
+  double? _top; // 改为可空，表示尚未初始化
   final double _width = 200;
   final double _height = 112; // 16:9 比例
 
@@ -149,27 +150,24 @@ class _PipWidgetState extends State<PipWidget> {
   Offset? _dragStartOffset;
   Offset? _dragStartPosition;
 
+  // 标记是否正在关闭，用于提前隐藏 widget 避免 Obx 订阅清理错误
+  bool _isClosing = false;
+
   @override
   void initState() {
     super.initState();
-
-    // 初始化位置（右下角）
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final screenSize = MediaQuery.of(context).size;
-        setState(() {
-          _left = screenSize.width - _width - 16;
-          _top = screenSize.height - _height - 100;
-        });
-      }
-    });
-
     _startHideTimer();
   }
 
   @override
   void dispose() {
     _hideTimer?.cancel();
+    // 清理静态回调，防止内存泄漏
+    // 即使 stopPip 没被调用（譬如App异常退出），也能在widget销毁时清理
+    if (PipOverlayService._overlayEntry != null) {
+      PipOverlayService._onCloseCallback = null;
+      PipOverlayService._onTapToReturnCallback = null;
+    }
     super.dispose();
   }
 
@@ -195,11 +193,20 @@ class _PipWidgetState extends State<PipWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 如果正在关闭，立即返回空 widget，避免 videoPlayerBuilder 中的 Obx 继续订阅
+    if (_isClosing) {
+      return const SizedBox.shrink();
+    }
+
     final screenSize = MediaQuery.of(context).size;
 
+    // 第一次构建时初始化位置到右下角，不触发setState
+    _left ??= screenSize.width - _width - 16;
+    _top ??= screenSize.height - _height - 100;
+
     return Positioned(
-      left: _left,
-      top: _top,
+      left: _left!,
+      top: _top!,
       child: GestureDetector(
         // 点击显示/隐藏控件
         onTap: _onTap,
@@ -207,7 +214,7 @@ class _PipWidgetState extends State<PipWidget> {
         onPanStart: (details) {
           _hideTimer?.cancel();
           _dragStartOffset = details.globalPosition;
-          _dragStartPosition = Offset(_left, _top);
+          _dragStartPosition = Offset(_left!, _top!);
         },
         onPanUpdate: (details) {
           if (_dragStartOffset != null && _dragStartPosition != null) {
@@ -239,7 +246,7 @@ class _PipWidgetState extends State<PipWidget> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 10,
                 spreadRadius: 2,
               ),
@@ -261,7 +268,7 @@ class _PipWidgetState extends State<PipWidget> {
                   // 半透明遮罩
                   Positioned.fill(
                     child: Container(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                     ),
                   ),
 
@@ -272,12 +279,19 @@ class _PipWidgetState extends State<PipWidget> {
                     child: GestureDetector(
                       onTap: () {
                         _hideTimer?.cancel();
-                        widget.onClose();
+                        // 先设置关闭标志，触发 build 返回空 widget
+                        setState(() {
+                          _isClosing = true;
+                        });
+                        // 延迟一帧后再真正关闭，确保 Obx 有时间清理订阅
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          widget.onClose();
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: .7),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -294,12 +308,19 @@ class _PipWidgetState extends State<PipWidget> {
                     child: GestureDetector(
                       onTap: () {
                         _hideTimer?.cancel();
-                        widget.onTapToReturn();
+                        // 先设置关闭标志，触发 build 返回空 widget
+                        setState(() {
+                          _isClosing = true;
+                        });
+                        // 延迟一帧后再真正执行返回，确保 Obx 有时间清理订阅
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          widget.onTapToReturn();
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

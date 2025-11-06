@@ -31,6 +31,7 @@ import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/page_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
 import 'package:PiliPro/utils/storage_key.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
@@ -191,6 +192,18 @@ class _LiveRoomPageState extends State<LiveRoomPage>
 
   /// 启动小窗模式
   void _startPipMode() {
+    /// 检查是否启用应用内小窗
+    if (!Pref.enableInAppPip) {
+      // 如果未开启应用内小窗，只暂停
+      _liveRoomController
+        ..danmakuController?.clear()
+        ..danmakuController?.pause()
+        ..cancelLiveTimer()
+        ..closeLiveMsg()
+        ..isPlaying = plPlayerController.playerStatus.playing;
+      return;
+    }
+
     // 保存播放状态
     _liveRoomController
       ..isPlaying = true
