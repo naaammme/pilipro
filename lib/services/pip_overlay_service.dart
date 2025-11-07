@@ -120,7 +120,7 @@ class PipOverlayService {
 }
 
 // PiP 小窗 Widget
-// TODO: 优化拖动体验，增加边缘吸附效果(或隐藏至边缘),优化拖动时的性能
+// 缓存 videoPlayerBuilder 返回的 Widget，避免拖动时重复构建
 class PipWidget extends StatefulWidget {
   final Widget Function(bool isPipMode) videoPlayerBuilder;
   final VoidCallback onClose;
@@ -146,16 +146,17 @@ class _PipWidgetState extends State<PipWidget> {
   bool _showControls = true;
   Timer? _hideTimer;
 
-  // 拖动状态
-  Offset? _dragStartOffset;
-  Offset? _dragStartPosition;
-
   // 标记是否正在关闭，用于提前隐藏 widget 避免 Obx 订阅清理错误
   bool _isClosing = false;
+
+  // 缓存videoPlayer widget
+  late final Widget _videoPlayerWidget;
 
   @override
   void initState() {
     super.initState();
+    // 在 initState 中只构建一次播放器
+    _videoPlayerWidget = widget.videoPlayerBuilder(true);
     _startHideTimer();
   }
 
@@ -200,7 +201,7 @@ class _PipWidgetState extends State<PipWidget> {
 
     final screenSize = MediaQuery.of(context).size;
 
-    // 第一次构建时初始化位置到右下角，不触发setState
+    // 第一次构建时初始化位置到右下角
     _left ??= screenSize.width - _width - 16;
     _top ??= screenSize.height - _height - 100;
 
@@ -210,30 +211,24 @@ class _PipWidgetState extends State<PipWidget> {
       child: GestureDetector(
         // 点击显示/隐藏控件
         onTap: _onTap,
-        // 拖动处理
+        // 拖动使用 delta 更新
         onPanStart: (details) {
           _hideTimer?.cancel();
-          _dragStartOffset = details.globalPosition;
-          _dragStartPosition = Offset(_left!, _top!);
         },
         onPanUpdate: (details) {
-          if (_dragStartOffset != null && _dragStartPosition != null) {
-            setState(() {
-              final delta = details.globalPosition - _dragStartOffset!;
-              _left = (_dragStartPosition!.dx + delta.dx).clamp(
-                0.0,
-                screenSize.width - _width,
-              );
-              _top = (_dragStartPosition!.dy + delta.dy).clamp(
-                0.0,
-                screenSize.height - _height,
-              );
-            });
-          }
+          // 只更新位置，不更新 video player
+          setState(() {
+            _left = (_left! + details.delta.dx).clamp(
+              0.0,
+              screenSize.width - _width,
+            );
+            _top = (_top! + details.delta.dy).clamp(
+              0.0,
+              screenSize.height - _height,
+            );
+          });
         },
         onPanEnd: (details) {
-          _dragStartOffset = null;
-          _dragStartPosition = null;
           if (_showControls) {
             _startHideTimer();
           }
@@ -259,7 +254,7 @@ class _PipWidgetState extends State<PipWidget> {
                 // 视频播放器 - 使用 AbsorbPointer 阻止所有手势传递给播放器
                 Positioned.fill(
                   child: AbsorbPointer(
-                    child: widget.videoPlayerBuilder(true),
+                    child: _videoPlayerWidget,
                   ),
                 ),
 
@@ -291,7 +286,7 @@ class _PipWidgetState extends State<PipWidget> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

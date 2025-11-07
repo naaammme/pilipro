@@ -176,13 +176,22 @@ class _LivePipWidgetState extends State<LivePipWidget> {
   bool _showControls = true;
   Timer? _hideTimer;
 
-  // 拖动状态
-  Offset? _dragStartOffset;
-  Offset? _dragStartPosition;
+  // 缓存
+  late final Widget _videoPlayerWidget;
 
   @override
   void initState() {
     super.initState();
+    // 只初始化一次 video player widget
+    _videoPlayerWidget = PLVideoPlayer(
+      maxWidth: _width,
+      maxHeight: _height,
+      plPlayerController: widget.plPlayerController,
+      // 小窗模式不显示任何控件
+      headerControl: const SizedBox.shrink(),
+      bottomControl: const SizedBox.shrink(),
+      danmuWidget: const SizedBox.shrink(),
+    );
     _startHideTimer();
   }
 
@@ -232,30 +241,24 @@ class _LivePipWidgetState extends State<LivePipWidget> {
       child: GestureDetector(
         // 点击显示/隐藏控件
         onTap: _onTap,
-        // 拖动处理
+        // 简化拖动逻辑，使用 delta 更新
         onPanStart: (details) {
           _hideTimer?.cancel();
-          _dragStartOffset = details.globalPosition;
-          _dragStartPosition = Offset(_left!, _top!);
         },
         onPanUpdate: (details) {
-          if (_dragStartOffset != null && _dragStartPosition != null) {
-            setState(() {
-              final delta = details.globalPosition - _dragStartOffset!;
-              _left = (_dragStartPosition!.dx + delta.dx).clamp(
-                0.0,
-                screenSize.width - _width,
-              );
-              _top = (_dragStartPosition!.dy + delta.dy).clamp(
-                0.0,
-                screenSize.height - _height,
-              );
-            });
-          }
+          // 只更新位置，不更新 video player
+          setState(() {
+            _left = (_left! + details.delta.dx).clamp(
+              0.0,
+              screenSize.width - _width,
+            );
+            _top = (_top! + details.delta.dy).clamp(
+              0.0,
+              screenSize.height - _height,
+            );
+          });
         },
         onPanEnd: (details) {
-          _dragStartOffset = null;
-          _dragStartPosition = null;
           if (_showControls) {
             _startHideTimer();
           }
@@ -281,15 +284,7 @@ class _LivePipWidgetState extends State<LivePipWidget> {
                 // 视频播放器 - 使用 AbsorbPointer 阻止所有手势传递给播放器
                 Positioned.fill(
                   child: AbsorbPointer(
-                    child: PLVideoPlayer(
-                      maxWidth: _width,
-                      maxHeight: _height,
-                      plPlayerController: widget.plPlayerController,
-                      // 小窗模式不显示任何控件
-                      headerControl: const SizedBox.shrink(),
-                      bottomControl: const SizedBox.shrink(),
-                      danmuWidget: const SizedBox.shrink(),
-                    ),
+                    child: _videoPlayerWidget,
                   ),
                 ),
 
