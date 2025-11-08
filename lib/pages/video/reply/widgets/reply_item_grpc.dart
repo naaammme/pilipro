@@ -16,6 +16,8 @@ import 'package:PiliPro/models/common/image_type.dart';
 import 'package:PiliPro/pages/dynamics/widgets/vote.dart';
 import 'package:PiliPro/pages/save_panel/view.dart';
 import 'package:PiliPro/pages/video/controller.dart';
+import 'package:PiliPro/pages/video/introduction/pgc/controller.dart';
+import 'package:PiliPro/pages/video/introduction/ugc/controller.dart';
 import 'package:PiliPro/pages/video/reply/widgets/zan_grpc.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/context_ext.dart';
@@ -25,6 +27,7 @@ import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/feed_back.dart';
 import 'package:PiliPro/utils/image_utils.dart';
 import 'package:PiliPro/utils/page_utils.dart';
+import 'package:PiliPro/utils/publish_history_storage.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:PiliPro/utils/url_utils.dart';
 import 'package:PiliPro/utils/utils.dart';
@@ -899,6 +902,16 @@ class ReplyItemGrpc extends StatelessWidget {
               ),
             ),
           ),
+          if (ownerMid == item.member.mid)
+            ListTile(
+              onTap: () {
+                Get.back();
+                _showEditCommentDialog(context, item, onDelete);
+              },
+              minLeadingWidth: 0,
+              leading: const Icon(Icons.edit_outlined, size: 19),
+              title: Text('编辑评论', style: style),
+            ),
           if (ownerMid == upMid || ownerMid == item.member.mid)
             ListTile(
               onTap: () async {
@@ -1074,6 +1087,171 @@ class ReplyItemGrpc extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  void _showEditCommentDialog(
+    BuildContext context,
+    ReplyInfo item,
+    VoidCallback onDelete,
+  ) {
+    final TextEditingController controller = TextEditingController(
+      text: item.content.message,
+    );
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('编辑评论'),
+          content: TextField(
+            controller: controller,
+            maxLines: 5,
+            minLines: 3,
+            decoration: const InputDecoration(
+              hintText: '输入新的评论内容',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: Get.back,
+              child: Text(
+                '取消',
+                style: TextStyle(color: theme.colorScheme.outline),
+              ),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newMessage = controller.text.trim();
+                if (newMessage.isEmpty) {
+                  SmartDialog.showToast('评论内容不能为空');
+                  return;
+                }
+
+                if (newMessage == item.content.message) {
+                  SmartDialog.showToast('评论内容没有变化');
+                  Get.back();
+                  return;
+                }
+
+                Get.back();
+
+                SmartDialog.showLoading(msg: '编辑中...');
+
+                try {
+                  // 这里删除原评论
+                  var deleteResult = await VideoHttp.replyDel(
+                    type: item.type.toInt(),
+                    oid: item.oid.toInt(),
+                    rpid: item.id.toInt(),
+                  );
+
+                  if (!deleteResult['status']) {
+                    SmartDialog.dismiss();
+                    SmartDialog.showToast('编辑失败，无法删除原评论');
+                    return;
+                  }
+
+                  // 发送评论延迟 0.7-1.4 秒
+                  final delay = Duration(
+                    milliseconds: 700 + Random().nextInt(700),
+                  );
+                  await Future.delayed(delay);
+
+                  // 这里发送新评论
+                  String message = newMessage;
+
+                  var sendResult = await VideoHttp.replyAdd(
+                    type: item.type.toInt(),
+                    oid: item.oid.toInt(),
+                    root: item.root.toInt(),
+                    parent: item.parent.toInt(),
+                    message: message,
+                    atNameToMid: {}, // 简单编辑不包含@提及
+                    pictures: [], // 简单编辑暂时不包含图片
+                    syncToDynamic: false,
+                  );
+
+                  SmartDialog.dismiss();
+
+                  if (sendResult['status']) {
+                    SmartDialog.showToast('编辑成功');
+
+                    // 保存到历史评论
+                    try {
+                      // 尝试获取视频信息
+                      String? targetTitle;
+                      String? targetUrl;
+
+                      // 尝试从 heroTag 获取视频信息
+                      final heroTag =
+                          getTag?.call() ?? Get.arguments?['heroTag'];
+                      if (heroTag != null) {
+                        try {
+                          final videoController =
+                              Get.find<VideoDetailController>(
+                                tag: heroTag,
+                              );
+                          if (videoController.isUgc) {
+                            // UGC 视频，从 UgcIntroController 获取
+                            final ugcController = Get.find<UgcIntroController>(
+                              tag: heroTag,
+                            );
+                            targetTitle = ugcController.videoDetail.value.title;
+                          } else {
+                            // PGC 视频，从 PgcIntroController 获取
+                            final pgcController = Get.find<PgcIntroController>(
+                              tag: heroTag,
+                            );
+                            targetTitle = pgcController.videoDetail.value.title;
+                          }
+                        } catch (e) {
+                          SmartDialog.showToast('从控制器获取标题失败: $e');
+                        }
+                      }
+
+                      // 提取新创建评论的rpid
+                      int? rpid;
+                      try {
+                        final replyData = sendResult['data']['reply'];
+                        if (replyData != null && replyData is Map) {
+                          rpid = replyData['rpid'] as int?;
+                        }
+                      } catch (e) {
+                        SmartDialog.showToast('提取rpid失败: $e');
+                      }
+
+                      await PublishHistoryStorage.saveComment(
+                        content: message,
+                        type: item.type.toInt(),
+                        oid: item.oid.toInt(),
+                        targetTitle: targetTitle,
+                        targetUrl: targetUrl,
+                        root: item.root.toInt(),
+                        parent: item.parent.toInt(),
+                        rpid: rpid,
+                      );
+                    } catch (e) {
+                      SmartDialog.showToast('保存评论历史失败: $e');
+                    }
+
+                    onDelete(); // 刷新评论列表
+                  } else {
+                    SmartDialog.showToast('编辑失败，无法发送新评论: ${sendResult['msg']}');
+                  }
+                } catch (e) {
+                  SmartDialog.dismiss();
+                  SmartDialog.showToast('编辑失败: $e');
+                }
+              },
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

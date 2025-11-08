@@ -173,8 +173,8 @@ class Routes {
     CustomGetPage(name: '/likeMe', page: () => const LikeMePage()),
     // 系统消息
     CustomGetPage(name: '/sysMsg', page: () => const SysMsgPage()),
-    // 历史评论
-    CustomGetPage(name: '/hisComment', page: () => const HisCommentPage()),
+    // 历史评论和弹幕(已发布的)
+    CustomGetPage(name: '/hisPublished', page: () => const HisPublishedPage()),
     // 登录页面
     CustomGetPage(name: '/loginPage', page: () => const LoginPage()),
     // 账户管理

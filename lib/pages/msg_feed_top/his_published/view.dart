@@ -16,15 +16,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 
-class HisCommentPage extends StatefulWidget {
-  const HisCommentPage({super.key});
+class HisPublishedPage extends StatefulWidget {
+  const HisPublishedPage({super.key});
 
   @override
-  State<HisCommentPage> createState() => _HisCommentPageState();
+  State<HisPublishedPage> createState() => _HisPublishedPageState();
 }
 
-class _HisCommentPageState extends State<HisCommentPage> {
-  late final _controller = Get.put(HisCommentController());
+class _HisPublishedPageState extends State<HisPublishedPage> {
+  late final _controller = Get.put(HisPublishedController());
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -563,32 +563,39 @@ class _HisCommentPageState extends State<HisCommentPage> {
       case PublishType.comment:
         // 评论:优先跳转到评论详情
         if (item.rpid != null) {
-          // 判断是一级评论还是二级评论
+          // 判断评论层级:
           // root == 0 或 null: 一级评论
-          // root != 0: 二级评论
-          final isSecondaryComment = item.root != null && item.root != 0;
+          // root != 0: 二级及以上评论
+          final isRootComment = item.root == null || item.root == 0;
 
-          // 一级评论: 使用 rpid 作为评论ID
-          // 二级评论: 使用 root 作为评论ID, rpid 作为 anchor 锚点定位参数
-          final commentId = isSecondaryComment ? item.root : item.rpid;
+          // 确定跳转的评论ID:
+          // 一级评论: 使用 rpid (自己的ID), 不需要 anchor
+          // 二级及以上评论: 使用 root (一级评论ID), rpid 作为 anchor
+          int commentId;
+          if (isRootComment) {
+            commentId = item.rpid!;
+          } else {
+            commentId = item.root!;
+          }
 
           String commentDetailUrl =
               'bilibili://comment/detail/${item.commentType}/${item.oid}/$commentId/';
 
-          // 构建查询参数
+          // 构建查询参数=
           final queryParams = <String>[];
 
-          // 二级评论: 添加 anchor 参数用于闪烁定位
-          if (isSecondaryComment) {
+          // 二级和三级评论: 添加 anchor 参数用于闪烁定位
+          if (!isRootComment) {
             queryParams.add('anchor=${item.rpid}');
           }
 
-          // 添加 enterUri 用于返回源内容
+          // 添加 enterUri 用于返回源内容=
           if (item.targetUrl != null && item.targetUrl!.isNotEmpty) {
             final encodedEnterUri = Uri.encodeComponent(item.targetUrl!);
             queryParams.add('enterUri=$encodedEnterUri');
           }
 
+          // 只有在有参数时才添加 '?'
           if (queryParams.isNotEmpty) {
             commentDetailUrl += '?${queryParams.join('&')}';
           }

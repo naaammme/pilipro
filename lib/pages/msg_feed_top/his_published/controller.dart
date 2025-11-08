@@ -2,7 +2,7 @@ import 'package:PiliPro/models/publish_history_item.dart';
 import 'package:PiliPro/utils/publish_history_storage.dart';
 import 'package:get/get.dart';
 
-class HisCommentController extends GetxController {
+class HisPublishedController extends GetxController {
   RxList<PublishHistoryItem> publishList =
       <PublishHistoryItem>[].obs; // 原始数据(已过滤类型)
   RxList<PublishHistoryItem> filteredList =
@@ -32,29 +32,25 @@ class HisCommentController extends GetxController {
     hasMore = true;
     displayList.clear();
 
-    try {
-      // 从数据库获取全部数据
-      final allData = PublishHistoryStorage.getHistory();
+    // 从数据库获取全部数据
+    final allData = PublishHistoryStorage.getHistory();
 
-      // 应用类型过滤
-      if (filterType.value != null) {
-        publishList.value = allData
-            .where((item) => item.publishType == filterType.value)
-            .toList();
-      } else {
-        publishList.value = allData;
-      }
-
-      // 应用搜索过滤(从全部数据中搜索)
-      applySearchFilter();
-
-      // 加载第一页数据用于显示
-      loadFirstPage();
-    } catch (e) {
-      print('加载发布历史失败: $e');
-    } finally {
-      isLoading.value = false;
+    // 应用类型过滤
+    if (filterType.value != null) {
+      publishList.value = allData
+          .where((item) => item.publishType == filterType.value)
+          .toList();
+    } else {
+      publishList.value = allData;
     }
+
+    // 应用搜索过滤(从全部数据中搜索)
+    applySearchFilter();
+
+    // 加载第一页数据用于显示
+    loadFirstPage();
+
+    isLoading.value = false;
   }
 
   // 应用搜索过滤 - 从全部数据中搜索
@@ -87,26 +83,23 @@ class HisCommentController extends GetxController {
 
     isLoadingMore.value = true;
 
-    try {
-      final startIndex = currentPage * pageSize;
-      final endIndex = (startIndex + pageSize).clamp(0, filteredList.length);
+    final startIndex = currentPage * pageSize;
+    final endIndex = (startIndex + pageSize).clamp(0, filteredList.length);
 
-      if (startIndex >= filteredList.length) {
-        hasMore = false;
-        return;
-      }
-
-      // 从完整的搜索结果中取出当前页的数据
-      final newItems = filteredList.sublist(startIndex, endIndex);
-      displayList.addAll(newItems);
-
-      currentPage++;
-      hasMore = endIndex < filteredList.length;
-    } catch (e) {
-      print('加载更多数据失败: $e');
-    } finally {
+    if (startIndex >= filteredList.length) {
+      hasMore = false;
       isLoadingMore.value = false;
+      return;
     }
+
+    // 从完整的搜索结果中取出当前页的数据
+    final newItems = filteredList.sublist(startIndex, endIndex);
+    displayList.addAll(newItems);
+
+    currentPage++;
+    hasMore = endIndex < filteredList.length;
+
+    isLoadingMore.value = false;
   }
 
   // 设置搜索关键词
@@ -131,39 +124,31 @@ class HisCommentController extends GetxController {
 
   // 删除单条记录
   Future<void> onRemove(int timestamp, int index) async {
-    try {
-      await PublishHistoryStorage.deleteItem(timestamp);
+    await PublishHistoryStorage.deleteItem(timestamp);
 
-      // 从显示列表中删除
-      displayList.removeAt(index);
+    // 从显示列表中删除
+    displayList.removeAt(index);
 
-      // 从过滤列表中删除
-      filteredList.removeWhere((item) => item.timestamp == timestamp);
+    // 从过滤列表中删除
+    filteredList.removeWhere((item) => item.timestamp == timestamp);
 
-      // 从原始列表中删除
-      publishList.removeWhere((item) => item.timestamp == timestamp);
+    // 从原始列表中删除
+    publishList.removeWhere((item) => item.timestamp == timestamp);
 
-      // 如果删除后当前页数据不足且还有更多数据,尝试加载
-      if (displayList.length < pageSize * currentPage && hasMore) {
-        loadMoreData();
-      }
-    } catch (e) {
-      print('删除记录失败: $e');
+    // 如果删除后当前页数据不足且还有更多数据,尝试加载
+    if (displayList.length < pageSize * currentPage && hasMore) {
+      loadMoreData();
     }
   }
 
   // 清空所有历史
   Future<void> clearAll() async {
-    try {
-      await PublishHistoryStorage.clearAll();
-      publishList.clear();
-      filteredList.clear();
-      displayList.clear();
-      currentPage = 0;
-      hasMore = false;
-    } catch (e) {
-      print('清空历史失败: $e');
-    }
+    await PublishHistoryStorage.clearAll();
+    publishList.clear();
+    filteredList.clear();
+    displayList.clear();
+    currentPage = 0;
+    hasMore = false;
   }
 
   // 获取当前最大保存数量

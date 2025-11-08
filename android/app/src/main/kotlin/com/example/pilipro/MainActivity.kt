@@ -133,6 +133,9 @@ class MainActivity : AudioServiceActivity() {
     }
 
     override fun onDestroy() {
+        // 先停止 AudioService,避免产生僵尸进程
+        stopService(Intent(this, com.ryanheise.audioservice.AudioService::class.java))
+
         super.onDestroy()
         android.os.Process.killProcess(android.os.Process.myPid())
         exitProcess(0)

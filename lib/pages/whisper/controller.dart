@@ -54,7 +54,7 @@ class WhisperController extends CommonWhisperController<SessionMainReply> {
       const (
         name: "我发布的",
         icon: Icons.history,
-        route: "/hisComment",
+        route: "/hisPublished",
         enabled: true,
       ),
     ];

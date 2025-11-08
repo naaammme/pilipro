@@ -69,4 +69,4 @@ body:
     id: info
     attributes:
       label: 相关信息
-      description: 请补充截图、录屏、BV号等其他有助于解决问题的信息。
+      description: 请补充截图、录屏、BV号、设备型号等其他有助于解决问题的信息。

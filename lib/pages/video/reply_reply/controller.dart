@@ -172,8 +172,9 @@ class VideoReplyReplyController extends ReplyController
     }
 
     final oid = replyItem!.oid.toInt();
-    final root = replyItem.id.toInt();
-    final key = oid + root;
+    final root = replyItem.root.toInt();
+    final parent = replyItem.id.toInt();
+    final key = oid + parent;
 
     Navigator.of(context)
         .push(
@@ -183,7 +184,7 @@ class VideoReplyReplyController extends ReplyController
                 hint: hint,
                 oid: oid,
                 root: root,
-                parent: root,
+                parent: parent,
                 replyType: this.replyType,
                 replyItem: replyItem,
                 items: savedReplies[key],

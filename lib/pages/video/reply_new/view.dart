@@ -467,7 +467,7 @@ class _ReplyPageState extends CommonRichTextPubPageState<ReplyPage> {
               targetTitle = pgcController.videoDetail.value.title;
             }
           } catch (e) {
-            debugPrint('从控制器获取标题失败: $e');
+            SmartDialog.showToast('从控制器获取视频信息失败: $e');
           }
         }
 
@@ -479,7 +479,7 @@ class _ReplyPageState extends CommonRichTextPubPageState<ReplyPage> {
             rpid = replyData['rpid'] as int?;
           }
         } catch (e) {
-          debugPrint('提取rpid失败: $e');
+          SmartDialog.showToast('提取rpid失败: $e');
         }
 
         await PublishHistoryStorage.saveComment(
@@ -494,7 +494,7 @@ class _ReplyPageState extends CommonRichTextPubPageState<ReplyPage> {
         );
       } catch (e) {
         // 静默处理保存失败，不影响用户体验
-        debugPrint('保存评论历史失败: $e');
+        SmartDialog.showToast('保存评论历史失败: $e');
       }
 
       Get.back(result: result['data']['reply']);
