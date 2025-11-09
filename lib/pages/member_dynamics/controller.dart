@@ -11,6 +11,7 @@ class MemberDynamicsController
   MemberDynamicsController(this.mid);
   int mid;
   String offset = '';
+  String? gaiaVtoken;
 
   @override
   void onInit() {
@@ -21,6 +22,7 @@ class MemberDynamicsController
   @override
   Future<void> onRefresh() {
     offset = '';
+    gaiaVtoken = null;
     return super.onRefresh();
   }
 
@@ -46,6 +48,11 @@ class MemberDynamicsController
       MemberHttp.memberDynamic(
         offset: offset,
         mid: mid,
+        gaiaVtoken: gaiaVtoken,
+        onSuccess: (String vtoken) {
+          gaiaVtoken = vtoken;
+          queryData();
+        },
       );
 
   Future<void> onRemove(dynamic dynamicId) async {

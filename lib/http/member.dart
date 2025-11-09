@@ -28,9 +28,11 @@ import 'package:PiliPro/models_new/space/space_shop/data.dart';
 import 'package:PiliPro/models_new/upower_rank/data.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/app_sign.dart';
+import 'package:PiliPro/utils/request_utils.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:PiliPro/utils/wbi_sign.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 class MemberHttp {
   static Future reportMember(
@@ -400,6 +402,8 @@ class MemberHttp {
   static Future<LoadingState<DynamicsDataModel>> memberDynamic({
     String? offset,
     int? mid,
+    String? gaiaVtoken,
+    required ValueChanged<String> onSuccess,
   }) async {
     String dmImgStr = Utils.base64EncodeRandomString(16, 64);
     String dmCoverImgStr = Utils.base64EncodeRandomString(32, 128);
@@ -419,33 +423,44 @@ class MemberHttp {
       'dm_img_inter': dmImgInter,
       'x-bili-device-req-json':
           '{"platform":"web","device":"pc","spmid":"333.1387"}',
+      'gaia_vtoken': ?gaiaVtoken,
     });
     var res = await Request().get(
       Api.memberDynamic,
       queryParameters: params,
       options: Options(
         headers: {
+          if (gaiaVtoken != null) 'cookie': 'x-bili-gaia-vtoken=$gaiaVtoken',
           'user-agent': UaType.pc.ua,
           'origin': 'https://space.bilibili.com',
           'referer': 'https://space.bilibili.com/$mid/dynamic',
         },
       ),
     );
+    // 检查响应头中的x-bili-gaia-vvoucher
+    final vVoucher = res.headers.value('x-bili-gaia-vvoucher');
+    if (vVoucher != null) {
+      RequestUtils.validate(vVoucher, onSuccess);
+      return const Error('触发风控');
+    }
+
     if (res.data['code'] == 0) {
       try {
         DynamicsDataModel data = DynamicsDataModel.fromJson(res.data['data']);
         if (data.loadNext == true) {
-          return memberDynamic(offset: data.offset, mid: mid);
+          return memberDynamic(
+            offset: data.offset,
+            mid: mid,
+            gaiaVtoken: gaiaVtoken,
+            onSuccess: onSuccess,
+          );
         }
         return Success(data);
       } catch (err) {
         return Error(err.toString());
       }
     } else {
-      Map errMap = const {
-        -352: '风控校验失败，请检查登录状态',
-      };
-      return Error(errMap[res.data['code']] ?? res.data['message']);
+      return Error(res.data['message']);
     }
   }
 

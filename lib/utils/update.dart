@@ -18,7 +18,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 abstract class Update {
   // 检查更新
-  static Future<void> checkUpdate([bool isAuto = false]) async {
+  static Future<void> checkUpdate([bool isAuto = true]) async {
     if (kDebugMode) return;
     SmartDialog.dismiss();
     try {
@@ -35,12 +35,23 @@ abstract class Update {
         }
         return;
       }
-      int latest =
-          DateTime.parse(res.data[0]['created_at']).millisecondsSinceEpoch ~/
+
+      final latestRelease = res.data[0];
+      int latestTime =
+          DateTime.parse(latestRelease['created_at']).millisecondsSinceEpoch ~/
           1000;
-      if (BuildConfig.buildTime >= latest) {
+
+      bool isPreRelease = latestRelease['prerelease'] as bool? ?? false;
+
+      if (BuildConfig.buildTime >= latestTime) {
         if (!isAuto) {
           SmartDialog.showToast('已检查更新,是最新版哦~');
+        }
+      } else if (isPreRelease) {
+        if (!isAuto) {
+          SmartDialog.showToast(
+            '已是最新稳定版哦~(跳过预发行版 ${latestRelease['tag_name']})',
+          );
         }
       } else {
         SmartDialog.show(
