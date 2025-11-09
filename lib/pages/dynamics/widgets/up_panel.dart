@@ -183,9 +183,10 @@ class _UpPanelState extends State<UpPanel> {
                             src: data.face,
                             type: ImageType.avatar,
                           )
-                        : const CircleAvatar(
-                            backgroundColor: Color(0xFF5CB67B),
-                            backgroundImage: AssetImage(
+                        : CircleAvatar(
+                            backgroundColor:
+                                theme.colorScheme.secondaryContainer,
+                            backgroundImage: const AssetImage(
                               'assets/images/logo/logo_2.png',
                             ),
                           ),
