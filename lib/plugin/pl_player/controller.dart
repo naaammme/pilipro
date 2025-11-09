@@ -135,7 +135,7 @@ class PlPlayerController {
   int? width;
   int? height;
 
-  late final tryLook = !Accounts.currentAccount.isLogin && Pref.p1080;
+  late final tryLook = (!Accounts.currentAccount.isLogin || MineController.anonymity.value) && Pref.p1080;
 
   late DataSource dataSource;
 

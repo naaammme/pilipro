@@ -192,6 +192,18 @@ class MineController
                     '(前往隐私设置了解详情)',
                     style: theme.textTheme.bodySmall,
                   ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          SmartDialog.dismiss();
+                        },
+                        child: const Text('知道了'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
