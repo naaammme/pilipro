@@ -902,16 +902,7 @@ class ReplyItemGrpc extends StatelessWidget {
               ),
             ),
           ),
-          if (ownerMid == item.member.mid)
-            ListTile(
-              onTap: () {
-                Get.back();
-                _showEditCommentDialog(context, item, onDelete);
-              },
-              minLeadingWidth: 0,
-              leading: const Icon(Icons.edit_outlined, size: 19),
-              title: Text('编辑评论', style: style),
-            ),
+
           if (ownerMid == upMid || ownerMid == item.member.mid)
             ListTile(
               onTap: () async {
@@ -1014,6 +1005,16 @@ class ReplyItemGrpc extends StatelessWidget {
               minLeadingWidth: 0,
               leading: Icon(Icons.error_outline, color: errorColor, size: 19),
               title: Text('举报', style: style!.copyWith(color: errorColor)),
+            ),
+          if (ownerMid == item.member.mid)
+            ListTile(
+              onTap: () {
+                Get.back();
+                _showEditCommentDialog(context, item, onDelete);
+              },
+              minLeadingWidth: 0,
+              leading: const Icon(Icons.edit_outlined, size: 19),
+              title: Text('编辑评论', style: style),
             ),
           if (replyLevel == 1 && !isSubReply && ownerMid == upMid)
             ListTile(

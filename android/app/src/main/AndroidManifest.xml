@@ -57,6 +57,8 @@
             android:windowSoftInputMode="adjustResize"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
+            android:relinquishTaskIdentity="true"
+            android:documentLaunchMode="intoExisting"
             >
 
             <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />

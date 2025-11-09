@@ -148,9 +148,12 @@ class MainActivity : AudioServiceActivity() {
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        MethodChannel(
-            flutterEngine!!.dartExecutor.binaryMessenger,
-            "floating"
-        ).invokeMethod("onPipChanged", isInPictureInPictureMode)
+        // 添加安全检查，防止冷启动时flutterEngine为null导致崩溃
+        flutterEngine?.let { engine ->
+            MethodChannel(
+                engine.dartExecutor.binaryMessenger,
+                "floating"
+            ).invokeMethod("onPipChanged", isInPictureInPictureMode)
+        }
     }
 }

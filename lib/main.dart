@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:PiliPro/build_config.dart';
@@ -158,6 +159,21 @@ Commit Hash: ${BuildConfig.commitHash}''';
         'BuildConfig': buildConfig,
       },
     );
+
+    // 捕获Flutter框架层的同步错误
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      logger.e(
+        details.exceptionAsString(),
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+    };
+    // 捕获平台层的错误
+    PlatformDispatcher.instance.onError = (error, stack) {
+      logger.e('Platform error', error: error, stackTrace: stack);
+      return true;
+    };
 
     Catcher2(
       debugConfig: debugConfig,

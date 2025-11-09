@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:PiliPro/common/constants.dart';
 import 'package:PiliPro/http/api.dart';
@@ -287,6 +289,8 @@ class MemberHttp {
   }) async {
     String dmImgStr = Utils.base64EncodeRandomString(16, 64);
     String dmCoverImgStr = Utils.base64EncodeRandomString(32, 128);
+    String dmImgInter = _generateDmImgInter();
+
     final params = await WbiSign.makSign({
       'mid': mid,
       'token': token,
@@ -295,7 +299,7 @@ class MemberHttp {
       'dm_img_list': '[]',
       'dm_img_str': dmImgStr,
       'dm_cover_img_str': dmCoverImgStr,
-      'dm_img_inter': '{"ds":[],"wh":[0,0,0],"of":[0,0,0]}',
+      'dm_img_inter': dmImgInter,
     });
     var res = await Request().get(
       Api.memberInfo,
@@ -355,6 +359,7 @@ class MemberHttp {
   }) async {
     String dmImgStr = Utils.base64EncodeRandomString(16, 64);
     String dmCoverImgStr = Utils.base64EncodeRandomString(32, 128);
+    String dmImgInter = _generateDmImgInter();
     final params = await WbiSign.makSign({
       'mid': mid,
       'ps': ps,
@@ -368,7 +373,7 @@ class MemberHttp {
       'dm_img_list': '[]',
       'dm_img_str': dmImgStr,
       'dm_cover_img_str': dmCoverImgStr,
-      'dm_img_inter': '{"ds":[],"wh":[0,0,0],"of":[0,0,0]}',
+      'dm_img_inter': dmImgInter,
     });
     var res = await Request().get(
       Api.searchArchive,
@@ -398,17 +403,20 @@ class MemberHttp {
   }) async {
     String dmImgStr = Utils.base64EncodeRandomString(16, 64);
     String dmCoverImgStr = Utils.base64EncodeRandomString(32, 128);
+    String dmImgInter = _generateDmImgInter();
+
     final params = await WbiSign.makSign({
       'offset': offset ?? '',
       'host_mid': mid,
       'timezone_offset': '-480',
-      'features': 'itemOpusStyle,listOnlyfans',
+      'features':
+          'itemOpusStyle,listOnlyfans,opusBigCover,onlyfansVote,forwardListHidden,decorationCard,commentsNewVersion,onlyfansAssetsV2,ugcDelete,onlyfansQaCard',
       'platform': 'web',
       'web_location': '333.1387',
       'dm_img_list': '[]',
       'dm_img_str': dmImgStr,
       'dm_cover_img_str': dmCoverImgStr,
-      'dm_img_inter': '{"ds":[],"wh":[0,0,0],"of":[0,0,0]}',
+      'dm_img_inter': dmImgInter,
       'x-bili-device-req-json':
           '{"platform":"web","device":"pc","spmid":"333.1387"}',
     });
@@ -790,5 +798,26 @@ class MemberHttp {
     } else {
       return Error(res.data['message']);
     }
+  }
+
+  /// 生成dm_img_inter参数
+  static String _generateDmImgInter() {
+    final random = Random();
+
+    List<int> wh = [
+      2 * 1920 + 2 * 1080 + 3 * (114 * random.nextDouble()).toInt(),
+      4 * 1920 - 1080 + (114 * random.nextDouble()).toInt(),
+      (114 * random.nextDouble()).toInt(),
+    ];
+
+    List<int> of = [
+      3 * 10 + 2 * 10 + (514 * random.nextDouble()).toInt(),
+      4 * 10 - 4 * 10 + 2 * (514 * random.nextDouble()).toInt(),
+      (514 * random.nextDouble()).toInt(),
+    ];
+
+    Map<String, dynamic> dmImgInterMap = {'ds': [], 'wh': wh, 'of': of};
+
+    return jsonEncode(dmImgInterMap);
   }
 }
