@@ -493,13 +493,13 @@ class _WebviewPageState extends State<WebviewPage> {
           onLoadStop: (controller, uri) async {
             final url = uri.toString();
 
-            // 阅读模式（如果已启用）
+            // 自动注入阅读模式（如果已启用）
             if (_readingModeEnabled && url.contains('aicu.cc')) {
               await _injectReadingMode();
               SmartDialog.showToast('已注入阅读模式脚本');
             }
 
-            // 自动注入55の强制复制（如果已启用）
+            // 自动注入强制复制（如果已启用）
             if (_forceCopyEnabled) {
               await _injectForceCopy();
             }
