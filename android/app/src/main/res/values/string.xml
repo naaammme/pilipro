@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PiliPro</string>
+    <string name="unintall_title">你好,可爱的小米用户!</string>
+    <string name="unintall_content">卸载应用将删除所有本地数据,卸载前请确认评论,搜索历史,设置,登录数据已经备份！</string>
 </resources>

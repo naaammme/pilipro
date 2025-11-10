@@ -45,6 +45,12 @@
         android:fullBackupContent="false"
         tools:replace="android:allowBackup">
         <meta-data
+            android:name="app_description_title"
+            android:resource="@string/unintall_title" />
+        <meta-data
+            android:name="app_description_content"
+            android:resource="@string/unintall_content" />
+        <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="false" />
         <activity

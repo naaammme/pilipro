@@ -1,3 +1,4 @@
+
 name: PiliPro
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
@@ -21,7 +22,7 @@ version: 1.8.0+1
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
-  flutter: 3.35.6 # update `.fvmrc` config
+  flutter: 3.35.7 # update `.fvmrc` config
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -211,11 +212,16 @@ dependencies:
       path: packages/window_manager
       ref: main
   tray_manager: ^0.5.1
-  file_picker: ^10.3.3
+  # file_picker: ^10.3.3
+  file_picker:
+    git:
+      url: https://github.com/bggRGjQaUbCoE/flutter_file_picker.git
+      ref: mod
   super_sliver_list:
     git:
       url: https://github.com/bggRGjQaUbCoE/super_sliver_list.git
       ref: mod
+  xml: ^6.6.1
 
   vector_math: any
   fixnum: any
