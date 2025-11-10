@@ -81,7 +81,7 @@ class _WebviewPageState extends State<WebviewPage> {
     );
   }
 
-  // 注入阅读模式屏蔽广告代码 (广告屏蔽功能由google gemini 2.5pro编写,跟本人无关)
+  // 注入阅读模式屏蔽广告脚本 (广告屏蔽脚本完全由google gemini 2.5pro编写,与本人无关)
   Future<void> _injectReadingMode() async {
     await _webViewController?.evaluateJavascript(
       source: '''
@@ -493,12 +493,13 @@ class _WebviewPageState extends State<WebviewPage> {
           onLoadStop: (controller, uri) async {
             final url = uri.toString();
 
-            // 自动注入阅读模式（如果已启用）
-            if (_readingModeEnabled) {
+            // 阅读模式（如果已启用）
+            if (_readingModeEnabled && url.contains('aicu.cc')) {
               await _injectReadingMode();
+              SmartDialog.showToast('已注入阅读模式脚本');
             }
 
-            // 自动注入强制复制（如果已启用）
+            // 自动注入55の强制复制（如果已启用）
             if (_forceCopyEnabled) {
               await _injectForceCopy();
             }

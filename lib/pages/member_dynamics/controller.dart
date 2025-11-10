@@ -51,7 +51,8 @@ class MemberDynamicsController
         gaiaVtoken: gaiaVtoken,
         onSuccess: (String vtoken) {
           gaiaVtoken = vtoken;
-          queryData();
+          isLoading = false;
+          onReload();
         },
       );
 
