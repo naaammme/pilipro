@@ -9,7 +9,8 @@ import 'package:PiliPro/grpc/bilibili/app/listener/v1.pb.dart'
         PlaylistResp,
         PlaylistSource,
         PlayInfo,
-        ThumbUpReq_ThumbType;
+        ThumbUpReq_ThumbType,
+        ListOrder;
 import 'package:PiliPro/http/constants.dart';
 import 'package:PiliPro/http/ua_type.dart';
 import 'package:PiliPro/pages/common/common_intro_controller.dart'
@@ -77,6 +78,7 @@ class AudioController extends GetxController
   String? _prev;
   String? _next;
   bool get reachStart => _prev == null;
+  ListOrder order = ListOrder.ORDER_NORMAL;
 
   @override
   void onInit() {
@@ -163,6 +165,7 @@ class AudioController extends GetxController
           ? _next
           : null,
       extraId: extraId,
+      order: order,
     );
     if (res.isSuccess) {
       final PlaylistResp data = res.data;
@@ -576,6 +579,9 @@ class AudioController extends GetxController
     if (index != null && playlist != null && player != null) {
       final next = index! + 1;
       if (next < playlist!.length) {
+        if (next == playlist!.length - 1 && _next != null) {
+          _queryPlayList(isLoadNext: true);
+        }
         playIndex(next);
         return true;
       }
@@ -642,6 +648,13 @@ class AudioController extends GetxController
     await _queryPlayList(isLoadNext: true);
     if (length != playlist!.length && context.mounted) {
       (context as Element).markNeedsBuild();
+    }
+  }
+
+  void onChangeOrder(ListOrder value) {
+    if (order != value) {
+      order = value;
+      _queryPlayList(isInit: true);
     }
   }
 

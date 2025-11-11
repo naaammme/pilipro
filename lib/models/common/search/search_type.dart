@@ -2,7 +2,7 @@
 enum SearchType {
   // all('综合'),
   // 视频：video
-  video('视频', hasHeader: true),
+  video('视频'),
   // 番剧：media_bangumi,
   media_bangumi('番剧'),
   // 影视：media_ft
@@ -16,13 +16,12 @@ enum SearchType {
   // 话题：topic
   // topic,
   // 用户：bili_user
-  bili_user('用户', hasHeader: true),
+  bili_user('用户'),
   // 专栏：article
-  article('专栏', hasHeader: true);
+  article('专栏');
   // 相簿：photo
   // photo
 
-  final bool hasHeader;
   final String label;
-  const SearchType(this.label, {this.hasHeader = false});
+  const SearchType(this.label);
 }

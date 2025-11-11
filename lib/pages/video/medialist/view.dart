@@ -76,6 +76,7 @@ class _MediaListPanelState extends State<MediaListPanel>
             backgroundColor: Colors.transparent,
             actions: [
               iconButton(
+                iconSize: 20,
                 tooltip: widget.desc ? '顺序播放' : '倒序播放',
                 icon: widget.desc
                     ? const Icon(MdiIcons.sortAscending)
@@ -86,6 +87,7 @@ class _MediaListPanelState extends State<MediaListPanel>
                 },
               ),
               iconButton(
+                iconSize: 20,
                 tooltip: '关闭',
                 icon: const Icon(Icons.close),
                 onPressed: Get.back,

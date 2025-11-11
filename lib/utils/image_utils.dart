@@ -197,7 +197,7 @@ abstract class ImageUtils {
             cancelToken: cancelToken,
           );
 
-          if (Utils.isMobile) {
+          if (Platform.isAndroid) {
             if (response.statusCode == 200) {
               await SaverGallery.saveFile(
                 filePath: filePath,
@@ -214,7 +214,7 @@ abstract class ImageUtils {
             del: true,
           );
         } else {
-          if (Utils.isMobile) {
+          if (Platform.isAndroid) {
             await SaverGallery.saveFile(
               filePath: file.path,
               fileName: name,
@@ -227,7 +227,7 @@ abstract class ImageUtils {
         }
       });
       final result = await Future.wait(futures, eagerError: true);
-      if (!Utils.isMobile) {
+      if (Platform.isAndroid) {
         for (var res in result) {
           if (res.statusCode == 200) {
             await saveFileImg(

@@ -38,6 +38,7 @@ import 'package:PiliPro/plugin/pl_player/models/bottom_progress_behavior.dart';
 import 'package:PiliPro/plugin/pl_player/models/double_tap_type.dart';
 import 'package:PiliPro/plugin/pl_player/models/fullscreen_mode.dart';
 import 'package:PiliPro/plugin/pl_player/models/gesture_type.dart';
+import 'package:PiliPro/plugin/pl_player/models/play_status.dart';
 import 'package:PiliPro/plugin/pl_player/models/video_fit_type.dart';
 import 'package:PiliPro/plugin/pl_player/widgets/app_bar_ani.dart';
 import 'package:PiliPro/plugin/pl_player/widgets/backward_seek.dart';
@@ -1162,8 +1163,10 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       default:
         if (_suspendedDm == null) {
           plPlayerController.controls = !plPlayerController.showControls.value;
-        } else {
+        } else if (_suspendedDm!.suspend) {
           _dmOffset.value = details.localPosition;
+        } else {
+          _suspendedDm = null;
         }
         break;
     }
@@ -1175,13 +1178,14 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       final pos = details.localPosition;
       final item = ctr.findSingleDanmaku(pos);
       if (item == null) {
-        _removeDmAction();
+        _suspendedDm?.suspend = false;
+        _dmOffset.value = null;
       } else if (item != _suspendedDm) {
+        _suspendedDm?.suspend = false;
         if (item.content.extra == null) {
-          _removeDmAction();
+          _dmOffset.value = null;
           return;
         }
-        _suspendedDm?.suspend = false;
         _suspendedDm = item..suspend = true;
       }
     }
@@ -1207,7 +1211,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         )
         ..onLongPressStart = ((_) =>
             plPlayerController.setLongPressStatus(true))
-        ..onLongPressEnd = (_) => plPlayerController.setLongPressStatus(false);
+        ..onLongPressEnd = ((_) => plPlayerController.setLongPressStatus(false))
+        ..onLongPressCancel = (() =>
+            plPlayerController.setLongPressStatus(false));
   late final OneSequenceGestureRecognizer _tapGestureRecognizer;
   late final DoubleTapGestureRecognizer _doubleTapGestureRecognizer;
   StreamSubscription<bool>? _danmakuListener;

@@ -56,6 +56,10 @@ class AudioPage extends StatefulWidget {
   );
 }
 
+extension _ListOrderExt on ListOrder {
+  String get title => const ['无序', '正序', '倒序', '随机'][value];
+}
+
 class _AudioPageState extends State<AudioPage> {
   final _controller = Get.put(
     AudioController(),
@@ -75,15 +79,30 @@ class _AudioPageState extends State<AudioPage> {
     final padding = MediaQuery.viewPaddingOf(context);
     return Scaffold(
       appBar: AppBar(
-        actions: _controller.isVideo
-            ? [
-                IconButton(
-                  onPressed: _showMore,
-                  icon: const Icon(Icons.more_vert),
-                ),
-                const SizedBox(width: 5),
-              ]
-            : null,
+        actions: [
+          Builder(
+            builder: (context) {
+              return PopupMenuButton<ListOrder>(
+                tooltip: '排序',
+                icon: const Icon(Icons.sort),
+                initialValue: _controller.order,
+                onSelected: (value) {
+                  _controller.onChangeOrder(value);
+                  (context as Element).markNeedsBuild();
+                },
+                itemBuilder: (context) => ListOrder.values
+                    .map((e) => PopupMenuItem(value: e, child: Text(e.title)))
+                    .toList(),
+              );
+            },
+          ),
+          if (_controller.isVideo)
+            IconButton(
+              onPressed: _showMore,
+              icon: const Icon(Icons.more_vert),
+            ),
+          const SizedBox(width: 5),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.only(
@@ -716,8 +735,8 @@ class _AudioPageState extends State<AudioPage> {
     final baseBarColor = colorScheme.brightness.isDark
         ? const Color(0x33FFFFFF)
         : const Color(0x33999999);
-    return Obx(() {
-      final child = ProgressBar(
+    final child = Obx(
+      () => ProgressBar(
         progress: _controller.position.value,
         total: _controller.duration.value,
         baseBarColor: baseBarColor,
@@ -730,15 +749,15 @@ class _AudioPageState extends State<AudioPage> {
         onDragStart: _onDragStart,
         onDragUpdate: _onDragUpdate,
         onSeek: _onSeek,
+      ),
+    );
+    if (Utils.isDesktop) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: child,
       );
-      if (Utils.isDesktop) {
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: child,
-        );
-      }
-      return child;
-    });
+    }
+    return child;
   }
 
   Widget _buildDuration(ColorScheme colorScheme) {

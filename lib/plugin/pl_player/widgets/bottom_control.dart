@@ -86,6 +86,39 @@ class BottomControl extends StatelessWidget {
       );
     }
 
+    Widget progressBar() {
+      final child = Obx(() {
+        final int value = controller.sliderPositionSeconds.value;
+        final int max = controller.durationSeconds.value.inSeconds;
+        if (value > max || max <= 0) {
+          return const SizedBox.shrink();
+        }
+        return ProgressBar(
+          progress: Duration(seconds: value),
+          buffered: Duration(seconds: controller.bufferedSeconds.value),
+          total: Duration(seconds: max),
+          progressBarColor: primary,
+          baseBarColor: const Color(0x33FFFFFF),
+          bufferedBarColor: bufferedBarColor,
+          thumbColor: primary,
+          thumbGlowColor: thumbGlowColor,
+          barHeight: 3.5,
+          thumbRadius: 7,
+          thumbGlowRadius: 25,
+          onDragStart: onDragStart,
+          onDragUpdate: (e) => onDragUpdate(e, max),
+          onSeek: (e) => onSeek(e, max),
+        );
+      });
+      if (Utils.isDesktop) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: child,
+        );
+      }
+      return child;
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
       child: Column(
@@ -98,37 +131,7 @@ class BottomControl extends StatelessWidget {
                 clipBehavior: Clip.none,
                 alignment: Alignment.bottomCenter,
                 children: [
-                  Obx(() {
-                    final int value = controller.sliderPositionSeconds.value;
-                    final int max = controller.durationSeconds.value.inSeconds;
-                    final int buffer = controller.bufferedSeconds.value;
-                    if (value > max || max <= 0) {
-                      return const SizedBox.shrink();
-                    }
-                    final child = ProgressBar(
-                      progress: Duration(seconds: value),
-                      buffered: Duration(seconds: buffer),
-                      total: Duration(seconds: max),
-                      progressBarColor: primary,
-                      baseBarColor: const Color(0x33FFFFFF),
-                      bufferedBarColor: bufferedBarColor,
-                      thumbColor: primary,
-                      thumbGlowColor: thumbGlowColor,
-                      barHeight: 3.5,
-                      thumbRadius: 7,
-                      thumbGlowRadius: 25,
-                      onDragStart: onDragStart,
-                      onDragUpdate: (e) => onDragUpdate(e, max),
-                      onSeek: (e) => onSeek(e, max),
-                    );
-                    if (Utils.isDesktop) {
-                      return MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: child,
-                      );
-                    }
-                    return child;
-                  }),
+                  progressBar(),
                   if (controller.enableSponsorBlock &&
                       videoDetailController.segmentProgressList.isNotEmpty)
                     Positioned(

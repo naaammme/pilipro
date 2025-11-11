@@ -477,15 +477,14 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   }
 
   SystemUiOverlayStyle _systemOverlayStyleForBrightness(
-    Brightness brightness, [
-    Color? backgroundColor,
-  ]) {
+    Brightness brightness,
+  ) {
     final SystemUiOverlayStyle style = brightness == Brightness.dark
         ? SystemUiOverlayStyle.light
         : SystemUiOverlayStyle.dark;
     // For backward compatibility, create an overlay style without system navigation bar settings.
     return SystemUiOverlayStyle(
-      statusBarColor: backgroundColor,
+      statusBarColor: Colors.transparent,
       statusBarBrightness: style.statusBarBrightness,
       statusBarIconBrightness: style.statusBarIconBrightness,
       systemStatusBarContrastEnforced: style.systemStatusBarContrastEnforced,
@@ -512,7 +511,6 @@ class _LiveRoomPageState extends State<LiveRoomPage>
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: _systemOverlayStyleForBrightness(
           Brightness.dark,
-          Theme.of(context).useMaterial3 ? const Color(0x00000000) : null,
         ),
         child: ColoredBox(
           color: Colors.black,
@@ -569,7 +567,7 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   Widget get _buildPH {
     final isFullScreen = this.isFullScreen;
     final height = maxWidth * 9 / 16;
-    final videoHeight = isFullScreen ? maxHeight : height;
+    final videoHeight = isFullScreen ? maxHeight - padding.top : height;
     final bottomHeight = maxHeight - padding.top - height - kToolbarHeight;
     return Column(
       children: [
