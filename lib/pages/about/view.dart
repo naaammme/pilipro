@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:PiliPro/build_config.dart';
+import 'package:PiliPro/grpc/bili_ticket.dart';
+import 'package:PiliPro/grpc/grpc_req.dart';
 import 'package:PiliPro/common/constants.dart';
 import 'package:PiliPro/common/widgets/dialog/dialog.dart';
 import 'package:PiliPro/common/widgets/list_tile.dart';
@@ -11,6 +13,7 @@ import 'package:PiliPro/services/logger.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
 import 'package:PiliPro/utils/cache_manage.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:PiliPro/utils/context_ext.dart';
 import 'package:PiliPro/utils/date_utils.dart';
 import 'package:PiliPro/utils/login_utils.dart';
@@ -209,10 +212,38 @@ Commit Hash: ${BuildConfig.commitHash}''',
           ListTile(
             onTap: () {
               if (cacheSize.value.isNotEmpty) {
+                final ticket = Pref.biliTicket;
+                final expireAt = Pref.biliTicketExpireAt;
+                final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+                final ticketStatus = ticket.isEmpty
+                    ? '未获取'
+                    : expireAt > 0 && now < expireAt
+                        ? '有效 (${((expireAt - now) / 60).ceil()}分钟后过期)'
+                        : '已过期';
+                final ticketPreview = ticket.isEmpty
+                    ? '无'
+                    : '${ticket.substring(0, ticket.length > 30 ? 30 : ticket.length)}...';
+
                 showConfirmDialog(
                   context: context,
-                  title: '提示',
-                  content: '该操作将清除图片及网络请求缓存数据，确认清除？',
+                  title: '清除缓存',
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('该操作将清除图片及网络请求缓存数据。'),
+                      const SizedBox(height: 12),
+                      const Text('当前 Ticket 信息:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('状态: $ticketStatus', style: subTitleStyle),
+                      Text('Ticket: $ticketPreview', style: subTitleStyle),
+                      if (expireAt > 0)
+                        Text(
+                          '过期时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(expireAt * 1000))}',
+                          style: subTitleStyle,
+                        ),
+                    ],
+                  ),
                   onConfirm: () async {
                     SmartDialog.showLoading(msg: '正在清除...');
                     try {
@@ -236,6 +267,44 @@ Commit Hash: ${BuildConfig.commitHash}''',
                 style: subTitleStyle,
               ),
             ),
+          ),
+          ListTile(
+            onTap: () async {
+              SmartDialog.showLoading(msg: '正在获取 Ticket...');
+              try {
+                final diag = await BiliTicketService.getTicketDiag(
+                  mid: GrpcReq.mid,
+                  buvid: GrpcReq.buvid,
+                  fp: GrpcReq.fp,
+                  fts: GrpcReq.fts,
+                );
+                SmartDialog.dismiss();
+                if (!context.mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Ticket 诊断结果'),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: diag.entries.map((e) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 13)),
+                        )).toList(),
+                      ),
+                    ),
+                    actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('关闭'))],
+                  ),
+                );
+              } catch (e) {
+                SmartDialog.dismiss();
+                SmartDialog.showToast('诊断异常: $e');
+              }
+            },
+            leading: const Icon(Icons.network_check),
+            title: const Text('测试获取 Ticket'),
+            subtitle: Text('手动请求并显示诊断信息', style: subTitleStyle),
           ),
           ListTile(
             title: const Text('导入/导出登录信息'),

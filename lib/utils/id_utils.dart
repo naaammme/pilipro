@@ -1,7 +1,10 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
 import 'dart:convert';
+import 'dart:math' show min;
 
+import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:uuid/v4.dart';
 
@@ -79,6 +82,7 @@ abstract class IdUtils {
     return '${const UuidV4().generate().toUpperCase()}${Utils.random.nextInt(100000).toString().padLeft(5, "0")}infoc';
   }
 
+
   static String genAuroraEid(int uid) {
     if (uid == 0) {
       return '';
@@ -111,6 +115,28 @@ abstract class IdUtils {
     randomTraceId.write(randomId.substring(30, 32));
 
     return '${randomTraceId.toString()}:${randomTraceId.toString().substring(16, 32)}:0:0';
+  }
+
+  /// Generate device fingerprint (fp)
+  static String genFingerprint(String buvid, {String model = 'android'}) {
+    final fpBase = '$buvid$model';
+    final fpMd5 = md5.convert(utf8.encode(fpBase)).toString();
+    final timestamp = DateFormat('yyyyMMddHHmmss').format(DateTime.now());
+    final randomHex = Utils.generateRandomString(16, hex: true);
+    final fpRaw = fpMd5 + timestamp + randomHex;
+
+    int veriCode = 0;
+    for (int i = 0; i < min(fpRaw.length, 62); i += 2) {
+      veriCode += int.parse(fpRaw.substring(i, min(i + 2, fpRaw.length)), radix: 16);
+    }
+
+    return fpRaw + (veriCode % 256).toRadixString(16).padLeft(2, '0');
+  }
+
+  /// Generate fts (first timestamp - simulated install time)
+  /// Returns timestamp from 30 days ago
+  static int genFts() {
+    return DateTime.now().millisecondsSinceEpoch ~/ 1000 - (30 * 24 * 3600);
   }
 }
 

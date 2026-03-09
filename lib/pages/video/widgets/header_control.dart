@@ -921,7 +921,7 @@ class HeaderControlState extends State<HeaderControl> {
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20,
                       ),
-                      title: Text(i.quality),
+                      title: Text(AudioQuality.fromCode(i.id).desc),
                       subtitle: Text(
                         i.codecs!,
                         style: subTitleStyle,

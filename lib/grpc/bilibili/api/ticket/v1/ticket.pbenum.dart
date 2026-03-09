@@ -1,6 +1,6 @@
 // This is a generated file - do not edit.
 //
-// Generated from google/protobuf/any.proto.
+// Generated from bilibili/api/ticket/v1/ticket.proto.
 
 // @dart = 3.3
 

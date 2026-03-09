@@ -9,10 +9,10 @@ plugins {
 }
 
 android {
-    
+
     namespace = "com.example.pilipro"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // NDK 版本
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -4,6 +4,7 @@ import 'package:PiliPro/models/video/play/url.dart';
 import 'package:PiliPro/models_new/live/live_room_play_info/codec.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 
 abstract final class VideoUtils {
   static String cdnService = Pref.defaultCDNService;
@@ -13,6 +14,7 @@ abstract final class VideoUtils {
     String? backupUrl;
     String? videoUrl;
     defaultCDNService ??= cdnService;
+
     if (item is AudioItem) {
       if (disableAudioCDN) {
         return item.backupUrl?.isNotEmpty == true
@@ -43,10 +45,9 @@ abstract final class VideoUtils {
     if (videoUrl.isNullOrEmpty) {
       return "";
     }
-    // if (kDebugMode) debugPrint("videoUrl:$videoUrl");
 
     String defaultCDNHost = CDNService.fromCode(defaultCDNService).host;
-    // if (kDebugMode) debugPrint("defaultCDNHost:$defaultCDNHost");
+
     if (videoUrl!.contains("szbdyd.com")) {
       final uri = Uri.parse(videoUrl);
       String hostname = uri.queryParameters['xy_usource'] ?? defaultCDNHost;
@@ -59,7 +60,6 @@ abstract final class VideoUtils {
       // videoUrl =
       //     'https://proxy-tf-all-ws.bilivideo.com/?url=${Uri.encodeComponent(videoUrl)}';
     }
-    // if (kDebugMode) debugPrint("videoUrl:$videoUrl");
 
     // /// 先获取backupUrl 一般是upgcxcode地址 播放更稳定
     // if (item is VideoItem) {

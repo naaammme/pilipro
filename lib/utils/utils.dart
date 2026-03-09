@@ -96,13 +96,15 @@ abstract class Utils {
     return numericRegex.hasMatch(str);
   }
 
-  static String generateRandomString(int length) {
+  static String generateRandomString(int length, {bool hex = false}) {
     const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+    const hexCharacters = '0123456789abcdef';
+    final source = hex ? hexCharacters : characters;
 
     return String.fromCharCodes(
       Iterable.generate(
         length,
-        (_) => characters.codeUnitAt(random.nextInt(characters.length)),
+        (_) => source.codeUnitAt(random.nextInt(source.length)),
       ),
     );
   }

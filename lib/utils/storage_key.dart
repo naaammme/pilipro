@@ -20,6 +20,7 @@ abstract class SettingBoxKey {
       hardwareDecoding = 'hardwareDecoding',
       videoSync = 'videoSync',
       p1080 = 'p1080',
+      useMobileStream = 'useMobileStream',
       enableAutoBrightness = 'enableAutoBrightness',
       enableAutoEnter = 'enableAutoEnter',
       enableAutoExit = 'enableAutoExit',
@@ -232,7 +233,12 @@ abstract class LocalCacheKey {
       danmakuFilterRules = 'danmakuFilterRules',
       mixinKey = 'mixinKey',
       timeStamp = 'timeStamp',
-      buvid = 'buvid';
+      buvid = 'buvid',
+      biliTicket = 'biliTicket',  // x-bili-ticket 缓存
+      biliTicketExpireAt = 'biliTicketExpireAt',  // x-bili-ticket 过期时间戳(秒)
+      deviceGuid = 'deviceGuid',  // 设备GUID（用于生成buvid的种子）
+      deviceMac = 'deviceMac',    // 设备MAC地址
+      deviceAndroidId = 'deviceAndroidId';  // Android ID
 }
 
 abstract class VideoBoxKey {

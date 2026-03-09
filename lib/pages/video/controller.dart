@@ -11,6 +11,7 @@ import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/http/video.dart';
+import 'package:PiliPro/http/video_mobile.dart';
 import 'package:PiliPro/main.dart';
 import 'package:PiliPro/models/common/sponsor_block/action_type.dart';
 import 'package:PiliPro/models/common/sponsor_block/post_segment_model.dart';
@@ -1098,20 +1099,29 @@ class VideoDetailController extends GetxController
     bool? autoplay,
     Volume? volume,
   }) async {
+    final finalVideoUrl = plPlayerController.onlyPlayAudio.value
+        ? audio ?? audioUrl
+        : video ?? videoUrl;
+    final finalAudioUrl = plPlayerController.onlyPlayAudio.value
+        ? ''
+        : audio ?? audioUrl;
+
     await plPlayerController.setDataSource(
       DataSource(
-        videoSource: plPlayerController.onlyPlayAudio.value
-            ? audio ?? audioUrl
-            : video ?? videoUrl,
-        audioSource: plPlayerController.onlyPlayAudio.value
-            ? ''
-            : audio ?? audioUrl,
+        videoSource: finalVideoUrl,
+        audioSource: finalAudioUrl,
         type: DataSourceType.network,
-        httpHeaders: {
-          'user-agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-          'referer': HttpString.baseUrl,
-        },
+        httpHeaders: Pref.useMobileStream
+            ? {
+                // 移动端
+                'User-Agent': 'Bilibili Freedoooooom/MarkII',
+              }
+            : {
+                // Web 端
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+                'referer': HttpString.baseUrl,
+              },
       ),
       seekTo: seekToTime ?? defaultST ?? playedTime,
       duration:
@@ -1193,15 +1203,33 @@ class VideoDetailController extends GetxController
             : Pref.defaultAudioQaCellular;
     }
 
-    var result = await VideoHttp.videoUrl(
-      cid: cid.value,
-      bvid: bvid,
-      epid: epId,
-      seasonId: seasonId,
-      tryLook: plPlayerController.tryLook,
-      videoType: _actualVideoType ?? videoType,
-      language: currLang.value,
-    );
+    // 根据设置选择使用移动端或Web端接口
+    LoadingState result;
+    if (Pref.useMobileStream) {
+      // 使用移动端 PlayViewUnite 接口
+      result = await MobileVideoHttp.videoUrlMobile(
+        avid: aid,
+        bvid: bvid,
+        cid: cid.value,
+        qn: plPlayerController.cacheVideoQa,
+        epid: epId,
+        seasonId: seasonId,
+        tryLook: plPlayerController.tryLook,
+        videoType: _actualVideoType ?? videoType,
+        language: currLang.value,
+      );
+    } else {
+      // 使用 Web 接口
+      result = await VideoHttp.videoUrl(
+        cid: cid.value,
+        bvid: bvid,
+        epid: epId,
+        seasonId: seasonId,
+        tryLook: plPlayerController.tryLook,
+        videoType: _actualVideoType ?? videoType,
+        language: currLang.value,
+      );
+    }
 
     if (result.isSuccess) {
       data = result.data;

@@ -1,6 +1,6 @@
 // This is a generated file - do not edit.
 //
-// Generated from google/protobuf/any.proto.
+// Generated from datacenter/hakase/protobuf/android_device_info.proto.
 
 // @dart = 3.3
 

@@ -1114,6 +1114,7 @@ class PlPlayerController {
         })),
       videoPlayerController!.stream.error.listen((String event) {
         debugPrint('MPV Exception: $event');
+
         if (isLive) {
           if (event.startsWith('tcp: ffurl_read returned ') ||
               event.startsWith("Failed to open https://") ||

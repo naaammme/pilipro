@@ -297,7 +297,7 @@ class VideoItem extends BaseItem {
 }
 
 class AudioItem extends BaseItem {
-  late String quality;
+  String quality = '';
 
   AudioItem();
 

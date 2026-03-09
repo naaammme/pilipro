@@ -26,8 +26,8 @@ import 'package:PiliPro/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPro/utils/context_ext.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/global_data.dart';
-import 'package:PiliPro/utils/login_utils.dart';
 import 'package:PiliPro/utils/storage.dart';
+import 'package:PiliPro/utils/login_utils.dart'; 
 import 'package:PiliPro/utils/storage_key.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -650,6 +650,9 @@ abstract class Pref {
   static bool get p1080 =>
       _setting.get(SettingBoxKey.p1080, defaultValue: true);
 
+  static bool get useMobileStream =>
+      _setting.get(SettingBoxKey.useMobileStream, defaultValue: false);
+
   static int get customColor =>
       _setting.get(SettingBoxKey.customColor, defaultValue: 0);
 
@@ -817,6 +820,51 @@ abstract class Pref {
       _localCache.put(LocalCacheKey.buvid, buvid);
     }
     return buvid;
+  }
+
+  static String get biliTicket {
+    return _localCache.get(LocalCacheKey.biliTicket, defaultValue: '');
+  }
+
+  static set biliTicket(String ticket) {
+    _localCache.put(LocalCacheKey.biliTicket, ticket);
+  }
+
+  static int get biliTicketExpireAt {
+    final value = _localCache.get(LocalCacheKey.biliTicketExpireAt);
+    if (value is int) return value;
+    return 0;
+  }
+
+  static set biliTicketExpireAt(int expireAt) {
+    _localCache.put(LocalCacheKey.biliTicketExpireAt, expireAt);
+  }
+
+  static String get deviceGuid {
+    String? guid = _localCache.get(LocalCacheKey.deviceGuid);
+    if (guid == null) {
+      guid = const Uuid().v4();
+      _localCache.put(LocalCacheKey.deviceGuid, guid);
+    }
+    return guid;
+  }
+
+  static String get deviceMac {
+    String? mac = _localCache.get(LocalCacheKey.deviceMac);
+    if (mac == null) {
+      mac = List.generate(6, (_) => Utils.random.nextInt(256).toRadixString(16).padLeft(2, '0')).join(':');
+      _localCache.put(LocalCacheKey.deviceMac, mac);
+    }
+    return mac;
+  }
+
+  static String get deviceAndroidId {
+    String? androidId = _localCache.get(LocalCacheKey.deviceAndroidId);
+    if (androidId == null) {
+      androidId = Utils.generateRandomString(16, hex: true);
+      _localCache.put(LocalCacheKey.deviceAndroidId, androidId);
+    }
+    return androidId;
   }
 
   static bool get showMemberShop =>

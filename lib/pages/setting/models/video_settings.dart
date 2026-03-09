@@ -29,11 +29,19 @@ List<SettingsModel> get videoSettings => [
   ),
   const SettingsModel(
     settingsType: SettingsType.sw1tch,
-    title: '免登录1080P',
+    title: '免登录而看1080P',
     subtitle: '免登录查看1080P视频',
     leading: Icon(Icons.hd_outlined),
     setKey: SettingBoxKey.p1080,
     defaultVal: true,
+  ),
+  const SettingsModel(
+    settingsType: SettingsType.sw1tch,
+    title: '使用移动端取流',
+    subtitle: '使用 android_hd 移动端接口获取视频流，可能获得更高清晰度权限',
+    leading: Icon(Icons.phone_android_outlined),
+    setKey: SettingBoxKey.useMobileStream,
+    defaultVal: false,
   ),
   SettingsModel(
     settingsType: SettingsType.normal,

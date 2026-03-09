@@ -20,23 +20,19 @@ class RadioWidget<T> extends StatefulWidget {
   State<RadioWidget<T>> createState() => RadioWidgetState<T>();
 }
 
-class RadioWidgetState<T> extends State<RadioWidget<T>> with RadioClient<T> {
-  late final _RadioRegistry<T> _radioRegistry = _RadioRegistry<T>(this);
-
-  @override
+class RadioWidgetState<T> extends State<RadioWidget<T>> {
   final focusNode = FocusNode();
 
-  @override
   T get radioValue => widget.value;
 
-  bool get checked => radioValue == registry!.groupValue;
+  RadioGroupRegistry<T>? _radioGroup;
 
-  @override
+  bool get checked => radioValue == _radioGroup?.groupValue;
+
   bool get tristate => widget.tristate;
 
   @override
   void dispose() {
-    registry = null;
     focusNode.dispose();
     super.dispose();
   }
@@ -44,16 +40,16 @@ class RadioWidgetState<T> extends State<RadioWidget<T>> with RadioClient<T> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    registry = RadioGroup.maybeOf(context);
-    assert(registry != null);
+    _radioGroup = RadioGroup.maybeOf(context);
+    assert(_radioGroup != null);
   }
 
   void _handleTap() {
     if (checked) {
-      if (tristate) registry!.onChanged(null);
+      if (tristate) _radioGroup?.onChanged(null);
       return;
     }
-    registry!.onChanged(radioValue);
+    _radioGroup?.onChanged(radioValue);
   }
 
   @override
@@ -70,7 +66,6 @@ class RadioWidgetState<T> extends State<RadioWidget<T>> with RadioClient<T> {
           descendantsAreTraversable: false,
           child: Radio<T>(
             value: radioValue,
-            groupRegistry: _radioRegistry,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
@@ -129,26 +124,3 @@ class WrapRadioOptionsGroup<T> extends StatelessWidget {
   }
 }
 
-/// A registry to controls internal [Radio] and hides it from [RadioGroup]
-/// ancestor.
-///
-/// [RadioListTile] implements the [RadioClient] directly to register to
-/// [RadioGroup] ancestor. Therefore, it has to hide the internal [Radio] from
-/// participate in the [RadioGroup] ancestor.
-class _RadioRegistry<T> extends RadioGroupRegistry<T> {
-  _RadioRegistry(this.state);
-
-  final RadioWidgetState<T> state;
-
-  @override
-  T? get groupValue => state.registry!.groupValue;
-
-  @override
-  ValueChanged<T?> get onChanged => state.registry!.onChanged;
-
-  @override
-  void registerClient(RadioClient<T> radio) {}
-
-  @override
-  void unregisterClient(RadioClient<T> radio) {}
-}

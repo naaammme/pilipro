@@ -15,5 +15,6 @@ enum AudioQuality {
 
   static final _codeMap = {for (var i in values) i.code: i};
 
-  static AudioQuality fromCode(int code) => _codeMap[code]!;
+  static AudioQuality fromCode(int? code) =>
+      _codeMap[code] ?? AudioQuality.k64;
 }

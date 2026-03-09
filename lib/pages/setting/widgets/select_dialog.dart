@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:PiliPro/http/constants.dart';
 import 'package:PiliPro/http/video.dart';
+import 'package:PiliPro/http/video_mobile.dart';
 import 'package:PiliPro/models/common/video/cdn_type.dart';
 import 'package:PiliPro/models/common/video/video_type.dart';
 import 'package:PiliPro/models/video/play/url.dart';
@@ -109,12 +110,20 @@ class _CdnSelectDialogState extends State<CdnSelectDialog> {
   }
 
   Future<VideoItem> _getSampleUrl() async {
-    final result = await VideoHttp.videoUrl(
-      cid: 196018899,
-      bvid: 'BV1fK4y1t7hj',
-      tryLook: false,
-      videoType: VideoType.ugc,
-    );
+    // 根据用户设置选择使用移动端或 Web 端接口获取测试 URL
+    final result = Pref.useMobileStream
+        ? await MobileVideoHttp.videoUrlMobile(
+            cid: 196018899,
+            bvid: 'BV1fK4y1t7hj',
+            tryLook: false,
+            videoType: VideoType.ugc,
+          )
+        : await VideoHttp.videoUrl(
+            cid: 196018899,
+            bvid: 'BV1fK4y1t7hj',
+            tryLook: false,
+            videoType: VideoType.ugc,
+          );
     final item = result.dataOrNull?.dash?.video?.first;
     if (item == null) throw Exception('无法获取视频流');
     return item;
@@ -148,7 +157,19 @@ class _CdnSelectDialogState extends State<CdnSelectDialog> {
   Future<void> _measureDownloadSpeed(String url, int index) async {
     const maxSize = 8 * 1024 * 1024;
     int downloaded = 0;
-    final dio = Dio()..options.headers['referer'] = HttpString.baseUrl;
+    final dio = Dio();
+
+    // 根据取流模式设置不同的请求头用于测试
+    if (Pref.useMobileStream) {
+      // 移动端
+      dio.options.headers['User-Agent'] = 'Bilibili Freedoooooom/MarkII';
+    } else {
+      // Web 端
+      dio.options.headers['user-agent'] =
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36';
+      dio.options.headers['referer'] = HttpString.baseUrl;
+    }
+
     final start = DateTime.now().microsecondsSinceEpoch;
 
     await dio.get(
