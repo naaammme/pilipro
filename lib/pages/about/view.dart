@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:PiliPro/build_config.dart';
 import 'package:PiliPro/grpc/bili_ticket.dart';
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/common/constants.dart';
 import 'package:PiliPro/common/widgets/dialog/dialog.dart';
 import 'package:PiliPro/common/widgets/list_tile.dart';
@@ -212,36 +212,14 @@ Commit Hash: ${BuildConfig.commitHash}''',
           ListTile(
             onTap: () {
               if (cacheSize.value.isNotEmpty) {
-                final ticket = Pref.biliTicket;
-                final expireAt = Pref.biliTicketExpireAt;
-                final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-                final ticketStatus = ticket.isEmpty
-                    ? '未获取'
-                    : expireAt > 0 && now < expireAt
-                        ? '有效 (${((expireAt - now) / 60).ceil()}分钟后过期)'
-                        : '已过期';
-                final ticketPreview = ticket.isEmpty
-                    ? '无'
-                    : '${ticket.substring(0, ticket.length > 30 ? 30 : ticket.length)}...';
-
                 showConfirmDialog(
                   context: context,
                   title: '清除缓存',
-                  content: Column(
+                  content: const Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('该操作将清除图片及网络请求缓存数据。'),
-                      const SizedBox(height: 12),
-                      const Text('当前 Ticket 信息:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('状态: $ticketStatus', style: subTitleStyle),
-                      Text('Ticket: $ticketPreview', style: subTitleStyle),
-                      if (expireAt > 0)
-                        Text(
-                          '过期时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(expireAt * 1000))}',
-                          style: subTitleStyle,
-                        ),
+                      Text('该操作将清除图片及网络请求缓存数据。'),
                     ],
                   ),
                   onConfirm: () async {
@@ -272,11 +250,21 @@ Commit Hash: ${BuildConfig.commitHash}''',
             onTap: () async {
               SmartDialog.showLoading(msg: '正在获取 Ticket...');
               try {
+                // 获取当前存储的 ticket 信息
+                final currentTicket = Pref.biliTicket;
+                final expireAt = Pref.biliTicketExpireAt;
+                final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+                final ticketStatus = currentTicket.isEmpty
+                    ? '未获取'
+                    : expireAt > 0 && now < expireAt
+                        ? '有效 (${((expireAt - now) / 60).ceil()}分钟后过期)'
+                        : '已过期';
+
                 final diag = await BiliTicketService.getTicketDiag(
-                  mid: GrpcReq.mid,
-                  buvid: GrpcReq.buvid,
-                  fp: GrpcReq.fp,
-                  fts: GrpcReq.fts,
+                  mid: GrpcClient.mid,
+                  buvid: GrpcClient.buvid,
+                  fp: GrpcClient.fp,
+                  fts: GrpcClient.fts,
                 );
                 SmartDialog.dismiss();
                 if (!context.mounted) return;
@@ -288,10 +276,28 @@ Commit Hash: ${BuildConfig.commitHash}''',
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: diag.entries.map((e) => Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 13)),
-                        )).toList(),
+                        children: [
+                          const Text('当前存储的 Ticket:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 6),
+                          Text('状态: $ticketStatus', style: const TextStyle(fontSize: 13)),
+                          if (currentTicket.isNotEmpty) ...[
+                            Text('Ticket: ${currentTicket.substring(0, currentTicket.length > 30 ? 30 : currentTicket.length)}...', style: const TextStyle(fontSize: 13)),
+                            if (expireAt > 0)
+                              Text(
+                                '过期时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(expireAt * 1000))}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                          ],
+                          const SizedBox(height: 12),
+                          const Divider(),
+                          const SizedBox(height: 6),
+                          const Text('诊断信息:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 6),
+                          ...diag.entries.map((e) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 13)),
+                          )).toList(),
+                        ],
                       ),
                     ),
                     actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('关闭'))],
@@ -303,8 +309,8 @@ Commit Hash: ${BuildConfig.commitHash}''',
               }
             },
             leading: const Icon(Icons.network_check),
-            title: const Text('测试获取 Ticket'),
-            subtitle: Text('手动请求并显示诊断信息', style: subTitleStyle),
+            title: const Text('手动获取 Ticket'),
+            subtitle: Text('手动请求并显示相关信息', style: subTitleStyle),
           ),
           ListTile(
             title: const Text('导入/导出登录信息'),

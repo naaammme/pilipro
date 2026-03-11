@@ -38,7 +38,7 @@ List<SettingsModel> get videoSettings => [
   const SettingsModel(
     settingsType: SettingsType.sw1tch,
     title: '使用移动端取流',
-    subtitle: '使用 android_hd 移动端接口获取视频流，可能获得更高清晰度权限',
+    subtitle: '使用 android_hd 移动端接口获取视频流，可能会更快更稳定吧',
     leading: Icon(Icons.phone_android_outlined),
     setKey: SettingBoxKey.useMobileStream,
     defaultVal: false,

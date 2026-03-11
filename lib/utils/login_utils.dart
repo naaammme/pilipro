@@ -1,7 +1,7 @@
 import 'dart:async' show FutureOr;
 import 'dart:io' show Platform;
 
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/http/user.dart';
 import 'package:PiliPro/main.dart';
@@ -55,7 +55,7 @@ abstract class LoginUtils {
 
   static Future<void> onLoginMain() async {
     final account = Accounts.main;
-    GrpcReq.updateHeaders(account.accessKey);
+    GrpcClient.updateHeaders(account.accessKey);
     setWebCookie(account);
     RequestUtils.syncHistoryStatus();
     final result = await UserHttp.userInfo();
@@ -120,7 +120,7 @@ abstract class LoginUtils {
       ..face.value = ''
       ..isLogin.value = false;
 
-    GrpcReq.updateHeaders(null);
+    GrpcClient.updateHeaders(null);
 
     await Future.wait([
       if (!Platform.isLinux)

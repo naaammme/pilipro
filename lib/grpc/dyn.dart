@@ -2,7 +2,7 @@ import 'package:PiliPro/grpc/bilibili/app/dynamic/v1.pb.dart'
     show DynRedReq, TabOffset, DynRedReply;
 import 'package:PiliPro/grpc/bilibili/app/dynamic/v2.pb.dart'
     show OpusType, OpusDetailReq, OpusDetailResp;
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/grpc/url.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:fixnum/fixnum.dart';
@@ -25,7 +25,7 @@ class DynGrpc {
   // }
 
   static Future<int?> dynRed() async {
-    final res = await GrpcReq.request(
+    final res = await GrpcClient.request(
       GrpcUrl.dynRed,
       DynRedReq(tabOffset: [TabOffset(tab: 1)]),
       DynRedReply.fromBuffer,
@@ -37,7 +37,7 @@ class DynGrpc {
     OpusType? opusType,
     required int oid,
   }) async {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.opusDetail,
       OpusDetailReq(
         opusType: opusType,

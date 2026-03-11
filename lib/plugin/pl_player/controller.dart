@@ -830,10 +830,25 @@ class PlPlayerController {
       if (isAnim) {
         setShader(superResolutionType.value, pp);
       }
-      await pp.setProperty(
-        "af",
-        "scaletempo2=max-speed=8",
-      );
+      await pp.setProperty("af", "scaletempo2=max-speed=8");
+      await pp.setProperty("demuxer-readahead-secs", "30"); // 只预读30秒
+      await pp.setProperty("demuxer-seekable-cache", "auto");
+      await pp.setProperty("hr-seek", "no");
+
+      //await pp.setProperty("demuxer-seekable-cache-min-size", "1048576"); // 1MB 最小缓存即可开始
+      //await pp.setProperty("demuxer-lavf-o", "fflags=+fastseek+discardcorrupt");
+      //await pp.setProperty("vd-lavc-fast", "yes");
+      //await pp.setProperty("vd-lavc-skiploopfilter", "nonkey");
+
+
+      await pp.setProperty("cache-pause", "no");
+      await pp.setProperty("cache-pause-initial", "no");
+      await pp.setProperty("audio-file-auto", "no");
+      await pp.setProperty("demuxer-thread", "yes");
+      await pp.setProperty("audio-buffer", "0.1");
+      await pp.setProperty("initial-audio-sync", "no");
+      await pp.setProperty("hr-seek-demuxer-offset", "-1");
+
       if (Platform.isAndroid) {
         await pp.setProperty("volume-max", "100");
         String ao = Pref.useOpenSLES
@@ -850,7 +865,7 @@ class PlPlayerController {
       await player.setAudioTrack(AudioTrack.auto());
     }
 
-    // 音轨
+    // 音轨 - 使用 audio-files 属性保证音画同步
     if (dataSource.audioSource?.isNotEmpty == true) {
       await pp.setProperty(
         'audio-files',
@@ -945,9 +960,9 @@ class PlPlayerController {
       );
     }
     // 音轨
-    // player.setAudioTrack(
-    //   AudioTrack.uri(dataSource.audioSource!),
-    // );
+    // 注意：使用 audio-files 而不是 AudioTrack.uri()
+    // 因为 AudioTrack.uri() 会导致音画不同步
+    // audio-files 是 mpv 原生属性，不会在 state.track 中显示，但能保证同步
 
     return player;
   }
@@ -981,6 +996,7 @@ class PlPlayerController {
       ),
       play: true,
     );
+
     return true;
     // seekTo(currentPos);
   }
@@ -1208,10 +1224,6 @@ class PlPlayerController {
     updatePositionSecond();
     _heartDuration = position.inSeconds;
     if (duration.value.inSeconds != 0) {
-      if (isSeek) {
-        /// 拖动进度条调节时，不等待第一帧，防止抖动
-        await _videoPlayerController?.stream.buffer.first;
-      }
       danmakuController?.clear();
       try {
         await _videoPlayerController?.seek(position);
@@ -1233,7 +1245,7 @@ class PlPlayerController {
           _timerForSeek = null;
         } else if (duration.value.inSeconds != 0) {
           try {
-            await _videoPlayerController?.stream.buffer.first;
+            // 同样移除等待 buffer 的逻辑
             danmakuController?.clear();
             await _videoPlayerController?.seek(position);
           } catch (e) {

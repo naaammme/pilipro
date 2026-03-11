@@ -3,7 +3,9 @@ import 'package:PiliPro/models/common/video/audio_quality.dart';
 import 'package:PiliPro/models/common/video/video_quality.dart';
 import 'package:PiliPro/models/common/video/video_type.dart';
 import 'package:PiliPro/models/video/play/url.dart';
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
+import 'package:PiliPro/models/common/video/video_decode_type.dart';
+import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:PiliPro/grpc/bilibili/app/playerunite/v1/playerunite.pb.dart';
 import 'package:PiliPro/grpc/bilibili/playershared/playershared.pb.dart' as playershared;
@@ -23,20 +25,15 @@ class MobileVideoHttp {
     String? language,
   }) async {
     try {
-      await GrpcReq.activateBuvid();
-
-      await GrpcReq.refreshTicketIfNeeded();
-
       final vod = playershared.VideoVod(
         aid: Int64(avid ?? 0),
         cid: Int64(cid),
         qn: Int64(qn ?? 80),
         fnver: 0,
-        fnval: 4048, // DASH + HDR + Dolby + AV1 (16 + 64 + 128 + 256 + 512 + 1024 + 2048)
-        fourk: true, // 始终请求 4K 支持
-        voiceBalance: Int64(1),
-        // 不设置 preferCodecType，让服务器返回所有可用编码格式
-        qnPolicy: 1,
+        fnval: 4048, // DASH(16) + HDR(64) + 4K(128) + Dolby(256) + DolbyVision(512) + 8K(1024) + AV1(2048)
+        fourk: true, // 请求 4K 支持
+        preferCodecType: _getPreferCodecType(),
+        qnPolicy: 1, // 自动清晰度策略
       );
 
       final request = PlayViewUniteReq(
@@ -48,6 +45,14 @@ class MobileVideoHttp {
         bvid: bvid ?? '',
       );
 
+      request.extraContent['security_level'] = 'LEVEL_UNKNOWN';
+      request.extraContent['is_need_view_info'] = 'true';
+      //request.extraContent['disable_pcdn'] = 'true'; 
+
+      if (bvid != null && bvid.isNotEmpty) {
+        request.bvid = bvid;
+      }
+
       if (epid != null) {
         request.extraContent['ep_id'] = epid.toString();
       }
@@ -55,7 +60,7 @@ class MobileVideoHttp {
         request.extraContent['season_id'] = seasonId.toString();
       }
 
-      final response = await GrpcReq.request(
+      final response = await GrpcClient.request(
         '/bilibili.app.playerunite.v1.Player/PlayViewUnite',
         request,
         PlayViewUniteReply.fromBuffer,
@@ -77,6 +82,15 @@ class MobileVideoHttp {
   ) {
     try {
       final vodInfo = reply.vodInfo;
+
+      // 从 gRPC 响应中提取云端播放历史
+      int? lastPlayTime;
+      int? lastPlayCid;
+      if (reply.hasHistory() && reply.history.hasCurrentVideo()) {
+        final historyInfo = reply.history.currentVideo;
+        lastPlayTime = historyInfo.progress.toInt() * 1000;
+        lastPlayCid = historyInfo.lastPlayCid.toInt();
+      }
 
       final List<VideoItem> videoList = [];
       for (final stream in vodInfo.streamList) {
@@ -158,6 +172,8 @@ class MobileVideoHttp {
         format: vodInfo.format,
         timeLength: vodInfo.timelength.toInt(),
         videoCodecid: vodInfo.videoCodecid,
+        lastPlayTime: lastPlayTime,
+        lastPlayCid: lastPlayCid,
         dash: Dash(
           video: videoList,
           audio: audioList,
@@ -225,6 +241,17 @@ class MobileVideoHttp {
     }
 
     return formatMap.values.toList();
+  }
+
+  /// 根据设置中的首选解码格式返回 preferCodecType
+  /// 0=AV1, 1=AVC, 2=HEVC??
+  static int _getPreferCodecType() {
+    final decode = VideoDecodeFormatType.fromCode(Pref.defaultDecode);
+    return switch (decode) {
+      VideoDecodeFormatType.AV1 => 0,
+      VideoDecodeFormatType.AVC => 1,
+      VideoDecodeFormatType.HEVC || VideoDecodeFormatType.DVH1 => 2,
+    };
   }
 }
 

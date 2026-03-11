@@ -92,15 +92,15 @@ class BiliTicketService {
           // 存储过期时间: created_at + ttl (秒级时间戳)
           final expireAt = ticketResponse.createdAt.toInt() + ticketResponse.ttl.toInt();
           Pref.biliTicketExpireAt = expireAt;
-          print('[BiliTicket] 成功获取/刷新 Ticket: ${ticketResponse.ticket.substring(0, min(40, ticketResponse.ticket.length))}..., TTL=${ticketResponse.ttl}s, 过期时间=$expireAt');
+          print('成功获取/刷新 Ticket: ${ticketResponse.ticket.substring(0, min(40, ticketResponse.ticket.length))}..., TTL=${ticketResponse.ttl}s, 过期时间=$expireAt');
           return ticketResponse.ticket;
         }
       }
 
-      print('[BiliTicket] 获取 Ticket 失败, statusCode=${response.statusCode}, dataLen=${response.data?.length}');
+      print('获取 Ticket 失败, statusCode=${response.statusCode}, dataLen=${response.data?.length}');
       return null;
     } catch (e) {
-      print('[BiliTicket] 获取 Ticket 异常: $e');
+      print('获取 Ticket 异常: $e');
       return null;
     }
   }

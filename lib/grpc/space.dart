@@ -1,6 +1,6 @@
 import 'package:PiliPro/grpc/bilibili/app/dynamic/v2.pb.dart';
 import 'package:PiliPro/grpc/bilibili/pagination.pb.dart';
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/grpc/url.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:fixnum/fixnum.dart';
@@ -11,7 +11,7 @@ class SpaceGrpc {
     String? next,
     required String filterType,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.opusSpaceFlow,
       OpusSpaceFlowReq(
         hostMid: Int64(hostMid),

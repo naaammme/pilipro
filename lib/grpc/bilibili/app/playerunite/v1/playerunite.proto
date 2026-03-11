@@ -31,14 +31,19 @@ message PlayViewUniteReply {
 
 message PlayViewUniteReq {
     bilibili.playershared.VideoVod vod = 1;
-    string spmid = 2;
-    string from_spmid = 3;
-    map<string, string> extra_content = 4;
-    string bvid = 5;
-    string ad_extra = 6;
-    bilibili.playershared.Fragment fragment = 7;
+    int64 aid = 2;
+    string ep_id = 3;
+    string spmid = 4;
+    string from_spmid = 5;
+    string session = 6;
+    bilibili.playershared.VideoVod vod_param = 7;
     string from_scene = 8;
-    int32 play_ctrl = 9;
+    map<string, string> extra_content = 9;
+    int32 play_ctrl = 10;
+    bilibili.playershared.Fragment fragment = 11;
+    int64 material_no = 12;
+    string risk_info = 13;
+    string mode = 14;
 }
 
 enum ResourceType {

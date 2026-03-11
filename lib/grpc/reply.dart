@@ -1,7 +1,7 @@
 import 'package:PiliPro/common/constants.dart';
 import 'package:PiliPro/grpc/bilibili/main/community/reply/v1.pb.dart';
 import 'package:PiliPro/grpc/bilibili/pagination.pb.dart';
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/grpc/url.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
@@ -48,7 +48,7 @@ class ReplyGrpc {
     required String? offset,
     required Int64? cursorNext,
   }) async {
-    final res = await GrpcReq.request(
+    final res = await GrpcClient.request(
       GrpcUrl.mainList,
       MainListReq(
         oid: Int64(oid),
@@ -90,7 +90,7 @@ class ReplyGrpc {
     required Mode mode,
     required String? offset,
   }) async {
-    final res = await GrpcReq.request(
+    final res = await GrpcClient.request(
       GrpcUrl.detailList,
       DetailListReq(
         oid: Int64(oid),
@@ -113,7 +113,7 @@ class ReplyGrpc {
     required int dialog,
     required String? offset,
   }) async {
-    final res = await GrpcReq.request(
+    final res = await GrpcClient.request(
       GrpcUrl.dialogList,
       DialogListReq(
         oid: Int64(oid),
@@ -134,7 +134,7 @@ class ReplyGrpc {
     int type = 1,
     String? keyword,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.searchItem,
       SearchItemReq(
         cursor: SearchItemCursorReq(

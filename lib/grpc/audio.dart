@@ -1,7 +1,7 @@
 import 'package:PiliPro/grpc/bilibili/app/archive/middleware/v1.pb.dart';
 import 'package:PiliPro/grpc/bilibili/app/listener/v1.pb.dart';
 import 'package:PiliPro/grpc/bilibili/pagination.pb.dart';
-import 'package:PiliPro/grpc/grpc_req.dart';
+import 'package:PiliPro/grpc/grpc_client.dart';
 import 'package:PiliPro/grpc/url.dart';
 import 'package:PiliPro/http/loading_state.dart';
 import 'package:fixnum/fixnum.dart';
@@ -14,7 +14,7 @@ class AudioGrpc {
     int qn = 80,
     int fnval = 4048,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.audioPlayUrl,
       PlayURLReq(
         item: PlayItem(
@@ -46,7 +46,7 @@ class AudioGrpc {
     int fnval = 4048,
     ListOrder order = ListOrder.ORDER_NORMAL,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.audioPlayList,
       PlaylistReq(
         from: from,
@@ -77,7 +77,7 @@ class AudioGrpc {
     required int itemType,
     required ThumbUpReq_ThumbType type,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.audioThumbUp,
       ThumbUpReq(
         item: PlayItem(
@@ -96,7 +96,7 @@ class AudioGrpc {
     required List<Int64> subId,
     required int itemType,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.audioTripleLike,
       TripleLikeReq(
         item: PlayItem(
@@ -116,7 +116,7 @@ class AudioGrpc {
     required int num,
     bool thumbUp = false,
   }) {
-    return GrpcReq.request(
+    return GrpcClient.request(
       GrpcUrl.audioCoinAdd,
       CoinAddReq(
         item: PlayItem(
