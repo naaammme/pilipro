@@ -9,6 +9,8 @@ class RecVideoItemAppModel extends BaseRecVideoItemModel {
 
   String? cardType;
   ThreePoint? threePoint;
+  int? playerWidth;
+  int? playerHeight;
 
   RecVideoItemAppModel.fromJson(Map<String, dynamic> json) {
     aid = json['player_args']?['aid'] ?? int.tryParse(json['param'] ?? '0');
@@ -29,7 +31,7 @@ class RecVideoItemAppModel extends BaseRecVideoItemModel {
       (stat as RcmdStat).like = NumUtils.parseNum(rcmdReason!);
     }
     // 由于app端api并不会直接返回与owner的关注状态
-    // 所以借用推荐原因是否为“已关注”、“新关注”判别关注状态，从而与web端接口等效
+    // 所以借用推荐原因是否为”已关注”、”新关注”判别关注状态，从而与web端接口等效
     isFollowed = const {'已关注', '新关注'}.contains(rcmdReason);
     // 如果是，就无需再显示推荐原因，交由view统一处理即可
     if (isFollowed) rcmdReason = null;
@@ -48,6 +50,15 @@ class RecVideoItemAppModel extends BaseRecVideoItemModel {
         ? ThreePoint.fromJson(json['three_point_v2'])
         : null;
     desc = json['desc'];
+
+    // 从 URI 中提取视频尺寸
+    if (uri != null) {
+      try {
+        final uriParams = Uri.parse(uri!).queryParameters;
+        playerWidth = int.tryParse(uriParams['player_width'] ?? '');
+        playerHeight = int.tryParse(uriParams['player_height'] ?? '');
+      } catch (_) {}
+    }
   }
 }
 

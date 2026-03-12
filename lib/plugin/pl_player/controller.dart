@@ -833,10 +833,10 @@ class PlPlayerController {
       await pp.setProperty("af", "scaletempo2=max-speed=8");
       await pp.setProperty("demuxer-readahead-secs", "30"); // 只预读30秒
       await pp.setProperty("demuxer-seekable-cache", "auto");
-      await pp.setProperty("hr-seek", "no");
+      await pp.setProperty("hr-seek", "absolute");
 
-      //await pp.setProperty("demuxer-seekable-cache-min-size", "1048576"); // 1MB 最小缓存即可开始
-      //await pp.setProperty("demuxer-lavf-o", "fflags=+fastseek+discardcorrupt");
+      //await pp.setProperty("demuxer-seekable-cache-min-size", "1048576"); // 和 mediakit 冲突
+      await pp.setProperty("demuxer-lavf-o", "fflags=+fastseek+discardcorrupt");
       //await pp.setProperty("vd-lavc-fast", "yes");
       //await pp.setProperty("vd-lavc-skiploopfilter", "nonkey");
 

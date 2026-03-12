@@ -105,11 +105,19 @@ class VideoCardH extends StatelessWidget {
                           bvid: videoItem.bvid,
                         );
                     if (cid != null) {
+                      int? playerWidth;
+                      int? playerHeight;
+                      if (videoItem case HotVideoItemModel item) {
+                        playerWidth = item.dimension?.width;
+                        playerHeight = item.dimension?.height;
+                      }
                       PageUtils.toVideoPage(
                         bvid: videoItem.bvid,
                         cid: cid,
                         cover: videoItem.cover,
                         title: videoItem.title,
+                        playerWidth: playerWidth,
+                        playerHeight: playerHeight,
                       );
                     }
                   } catch (err) {

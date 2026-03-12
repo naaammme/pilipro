@@ -12,6 +12,9 @@ abstract class BaseRecVideoItemModel extends BaseVideoItemModel {
 }
 
 class RecVideoItemModel extends BaseRecVideoItemModel {
+  int? playerWidth;
+  int? playerHeight;
+
   RecVideoItemModel.fromJson(Map<String, dynamic> json) {
     aid = json["id"];
     bvid = json["bvid"];
@@ -25,10 +28,21 @@ class RecVideoItemModel extends BaseRecVideoItemModel {
     owner = Owner.fromJson(json["owner"]);
     stat = Stat.fromJson(json["stat"]);
     isFollowed = json["is_followed"] == 1;
-    // rcmdReason = json["rcmd_reason"] != null
-    //     ? RcmdReason.fromJson(json["rcmd_reason"])
-    //     : RcmdReason(content: '');
     rcmdReason = json["rcmd_reason"]?['content'];
+
+    // 从 player_args 或 uri 中提取视频尺寸
+    final playerArgs = json["player_args"];
+    if (playerArgs is Map) {
+      playerWidth = playerArgs["player_width"];
+      playerHeight = playerArgs["player_height"];
+    }
+    if (playerWidth == null && uri != null) {
+      try {
+        final uriParams = Uri.parse(uri!).queryParameters;
+        playerWidth = int.tryParse(uriParams['player_width'] ?? '');
+        playerHeight = int.tryParse(uriParams['player_height'] ?? '');
+      } catch (_) {}
+    }
   }
 
   // @override

@@ -21,6 +21,7 @@ abstract class SettingBoxKey {
       videoSync = 'videoSync',
       p1080 = 'p1080',
       useMobileStream = 'useMobileStream',
+      mobileStreamHttps = 'mobileStreamHttps',
       enableAutoBrightness = 'enableAutoBrightness',
       enableAutoEnter = 'enableAutoEnter',
       enableAutoExit = 'enableAutoExit',

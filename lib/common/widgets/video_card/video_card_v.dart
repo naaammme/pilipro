@@ -7,6 +7,7 @@ import 'package:PiliPro/common/widgets/video_popup_menu.dart';
 import 'package:PiliPro/http/search.dart';
 import 'package:PiliPro/models/common/badge_type.dart';
 import 'package:PiliPro/models/common/stat_type.dart';
+import 'package:PiliPro/models/home/rcmd/result.dart';
 import 'package:PiliPro/models/model_rec_video_item.dart';
 import 'package:PiliPro/utils/app_scheme.dart';
 import 'package:PiliPro/utils/date_utils.dart';
@@ -41,12 +42,23 @@ class VideoCardV extends StatelessWidget {
             videoItem.cid ??
             await SearchHttp.ab2c(aid: videoItem.aid, bvid: bvid);
         if (cid != null) {
+          int? playerWidth;
+          int? playerHeight;
+          if (videoItem case RecVideoItemModel item) {
+            playerWidth = item.playerWidth;
+            playerHeight = item.playerHeight;
+          } else if (videoItem case RecVideoItemAppModel item) {
+            playerWidth = item.playerWidth;
+            playerHeight = item.playerHeight;
+          }
           PageUtils.toVideoPage(
             aid: videoItem.aid,
             bvid: bvid,
             cid: cid,
             cover: videoItem.cover,
             title: videoItem.title,
+            playerWidth: playerWidth,
+            playerHeight: playerHeight,
           );
         }
         break;

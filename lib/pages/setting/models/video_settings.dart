@@ -43,6 +43,14 @@ List<SettingsModel> get videoSettings => [
     setKey: SettingBoxKey.useMobileStream,
     defaultVal: false,
   ),
+  const SettingsModel(
+    settingsType: SettingsType.sw1tch,
+    title: '移动端取流使用 HTTPS',
+    subtitle: '开启更安全',
+    leading: Icon(Icons.https_outlined),
+    setKey: SettingBoxKey.mobileStreamHttps,
+    defaultVal: false,
+  ),
   SettingsModel(
     settingsType: SettingsType.normal,
     title: 'B站定向流量支持',

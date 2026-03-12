@@ -653,6 +653,9 @@ abstract class Pref {
   static bool get useMobileStream =>
       _setting.get(SettingBoxKey.useMobileStream, defaultValue: false);
 
+  static bool get mobileStreamHttps =>
+      _setting.get(SettingBoxKey.mobileStreamHttps, defaultValue: false);
+
   static int get customColor =>
       _setting.get(SettingBoxKey.customColor, defaultValue: 0);
 

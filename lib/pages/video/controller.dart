@@ -156,6 +156,10 @@ class VideoDetailController extends GetxController
   late double maxVideoHeight;
   late double videoHeight;
 
+  // 预知的视频尺寸（从feed传入）
+  int? preknownPlayerWidth;
+  int? preknownPlayerHeight;
+
   void animToTop() {
     final outerController = scrollKey.currentState!.outerController;
     if (outerController.hasClients) {
@@ -274,6 +278,15 @@ class VideoDetailController extends GetxController
     pgcType = args['pgcType'];
     heroTag = args['heroTag'];
     cover = RxString(args['cover'] ?? '');
+
+    // 读取预知的视频尺寸
+    preknownPlayerWidth = args['playerWidth'];
+    preknownPlayerHeight = args['playerHeight'];
+
+    // 如果有预知尺寸，提前设置 isVertical
+    if (preknownPlayerWidth != null && preknownPlayerHeight != null) {
+      isVertical.value = preknownPlayerWidth! < preknownPlayerHeight!;
+    }
 
     sourceType = args['sourceType'] ?? SourceType.normal;
     isPlayAll = sourceType != SourceType.normal;

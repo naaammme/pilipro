@@ -1677,6 +1677,8 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
 
           Obx(() {
             if (!videoDetailController.autoPlay.value) {
+            //if (!videoDetailController.autoPlay.value ||
+               // plPlayerController?.position.value == Duration.zero) {
               return Positioned.fill(
                 child: GestureDetector(
                   onTap: handlePlay,
@@ -1687,7 +1689,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                       src: videoDetailController.cover.value,
                       width: width,
                       height: height,
-                      boxFit: BoxFit.cover,
+                      boxFit: videoDetailController.plPlayerController.videoFit.value.boxFit,
                       forceUseCacheWidth: true,
                       getPlaceHolder: () => Center(
                         child: Image.asset('assets/images/loading.png'),

@@ -36,6 +36,11 @@ class MobileVideoHttp {
         qnPolicy: 1, // 自动清晰度策略
       );
 
+      // 如果启用移动端HTTPS，设置forceHost参数
+      if (Pref.mobileStreamHttps) {
+        vod.forceHost = 2;
+      }
+
       final request = PlayViewUniteReq(
         vod: vod,
         spmid: 'united.player-video-detail.0.0',

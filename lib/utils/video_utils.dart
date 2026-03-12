@@ -51,12 +51,12 @@ abstract final class VideoUtils {
     if (videoUrl!.contains("szbdyd.com")) {
       final uri = Uri.parse(videoUrl);
       String hostname = uri.queryParameters['xy_usource'] ?? defaultCDNHost;
-      videoUrl = uri.replace(host: hostname, port: 443).toString();
+      videoUrl = uri.replace(host: hostname, scheme: 'https').toString();
     } else if (videoUrl.contains(".mcdn.bilivideo") ||
         videoUrl.contains("/upgcxcode/")) {
       videoUrl = Uri.parse(
         videoUrl,
-      ).replace(host: defaultCDNHost, port: 443).toString();
+      ).replace(host: defaultCDNHost, scheme: 'https').toString();
       // videoUrl =
       //     'https://proxy-tf-all-ws.bilivideo.com/?url=${Uri.encodeComponent(videoUrl)}';
     }
@@ -106,6 +106,6 @@ abstract final class VideoUtils {
     }
     return Uri.parse(
       item.backupUrl.lastOrNull ?? item.url,
-    ).replace(host: CDNService.fromCode(cdnService).host, port: 443).toString();
+    ).replace(host: CDNService.fromCode(cdnService).host, scheme: 'https').toString();
   }
 }
