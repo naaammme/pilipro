@@ -8,6 +8,11 @@ on:
                 required: false
                 default: ""
                 type: string
+            description:
+                description: "Release description"
+                required: false
+                default: ""
+                type: string
 
 jobs:
     android:
@@ -115,6 +120,7 @@ jobs:
               with:
                   tag_name: ${{ github.event.inputs.tag }}
                   name: ${{ github.event.inputs.tag }}
+                  body: ${{ github.event.inputs.description }}
                   files: |
                       PiliPro_android_*.apk
 
