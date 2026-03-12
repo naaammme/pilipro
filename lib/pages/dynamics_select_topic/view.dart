@@ -8,7 +8,7 @@ import 'package:PiliPro/http/loading_state.dart';
 import 'package:PiliPro/models_new/dynamic/dyn_topic_top/topic_item.dart';
 import 'package:PiliPro/pages/dynamics_select_topic/controller.dart';
 import 'package:PiliPro/pages/dynamics_select_topic/widgets/item.dart';
-import 'package:PiliPro/pages/search/controller.dart' show DebounceStreamState;
+import 'package:PiliPro/utils/debounce_stream.dart' show DebounceStreamState;
 import 'package:PiliPro/utils/context_ext.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:flutter/material.dart';

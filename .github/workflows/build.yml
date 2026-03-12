@@ -1,61 +1,17 @@
-name: Build
+name: Build Android
 
 on:
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - reopened
-            - ready_for_review
-        paths-ignore:
-            - "**.md"
     workflow_dispatch:
         inputs:
-            build_android:
-                description: "Build Android"
-                required: false
-                default: true
-                type: boolean
-
-            build_ios:
-                description: "Build iOS"
-                required: false
-                default: true
-                type: boolean
-
-            build_mac:
-                description: "Build Mac"
-                required: false
-                default: true
-                type: boolean
-
-            build_win_x64:
-                description: "Build Win-x64"
-                required: false
-                default: true
-                type: boolean
-
-            build_linux_x64:
-                description: "Build Linux-x64"
-                required: false
-                default: true
-                type: boolean
-
-            build_linux_arm64:
-                description: "Build Linux-arm64"
-                required: false
-                default: true
-                type: boolean
-
             tag:
-                description: "tag"
+                description: "Release tag (leave empty to skip release)"
                 required: false
                 default: ""
                 type: string
 
 jobs:
     android:
-        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_android == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         name: Release Android
         runs-on: ubuntu-latest
         permissions: write-all
@@ -109,25 +65,6 @@ jobs:
                   sudo dpkg -i packages-microsoft-prod.deb
                   sudo apt-get update
                   sudo apt-get install -y powershell
-
-            - name: Create build config
-              run: |
-                  VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
-                  BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
-                  COMMIT_HASH=$(git rev-parse --short HEAD)
-                  TIMESTAMP=$(date +%s)
-                  
-                  cat > pili_release.json <<EOF
-                  {
-                    "pili.code": "$BUILD",
-                    "pili.name": "$VERSION",
-                    "pili.time": "$TIMESTAMP",
-                    "pili.hash": "$COMMIT_HASH"
-                  }
-                  EOF
-                  
-                  echo "Generated pili_release.json:"
-                  cat pili_release.json
 
             - name: Set and Extract version
               shell: pwsh

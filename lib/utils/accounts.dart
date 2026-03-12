@@ -2,6 +2,8 @@ import 'package:PiliPro/http/init.dart';
 import 'package:PiliPro/models/user/info.dart';
 import 'package:PiliPro/utils/accounts/account.dart';
 import 'package:PiliPro/utils/login_utils.dart';
+import 'package:PiliPro/utils/storage.dart';
+import 'package:PiliPro/utils/storage_key.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
 import 'package:hive/hive.dart';
 
@@ -33,8 +35,17 @@ abstract class Accounts {
   }
 
   static Future<void> refresh() async {
-    // 尝试从Hive中恢复最后使用的账号
-    if (account.isNotEmpty) {
+    // 检查是否为游客模式
+    final isGuestMode = GStorage.localCache.get(
+      LocalCacheKey.isGuestMode,
+      defaultValue: false,
+    );
+
+    if (isGuestMode) {
+      // 用户主动选择了游客模式，保持游客状态
+      _currentAccount = AnonymousAccount();
+    } else if (account.isNotEmpty) {
+      // 尝试从Hive中恢复最后使用的账号
       _currentAccount = account.values.first;
       UserInfoData? currentUserInfo = Pref.userInfoCache;
       if (currentUserInfo?.mid != null) {
@@ -61,6 +72,7 @@ abstract class Accounts {
 
     await AnonymousAccount().delete();
     await Request.buvidActive(AnonymousAccount());
+    await GStorage.localCache.put(LocalCacheKey.isGuestMode, true);
     await LoginUtils.onLogoutMain();
   }
 
@@ -74,6 +86,7 @@ abstract class Accounts {
       if (account.isEmpty) {
         // 没有其他账号了，切换到游客模式
         _currentAccount = AnonymousAccount();
+        await GStorage.localCache.put(LocalCacheKey.isGuestMode, true);
         await LoginUtils.onLogoutMain();
       } else {
         // 切换到第一个可用账号
@@ -88,6 +101,12 @@ abstract class Accounts {
 
     final wasLogin = _currentAccount.isLogin;
     _currentAccount = newAccount;
+
+    // 更新游客模式标记
+    await GStorage.localCache.put(
+      LocalCacheKey.isGuestMode,
+      !newAccount.isLogin,
+    );
 
     // 激活新账号的buvid
     if (!newAccount.activited) {

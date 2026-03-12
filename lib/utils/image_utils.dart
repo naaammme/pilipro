@@ -197,16 +197,6 @@ abstract class ImageUtils {
             cancelToken: cancelToken,
           );
 
-          if (Platform.isAndroid) {
-            if (response.statusCode == 200) {
-              await SaverGallery.saveFile(
-                filePath: filePath,
-                fileName: name,
-                androidRelativePath: "Pictures/${Constants.appName}",
-                skipIfExists: false,
-              ).whenComplete(File(filePath).tryDel);
-            }
-          }
           return (
             filePath: filePath,
             name: name,
@@ -214,15 +204,6 @@ abstract class ImageUtils {
             del: true,
           );
         } else {
-          if (Platform.isAndroid) {
-            await SaverGallery.saveFile(
-              filePath: file.path,
-              fileName: name,
-              androidRelativePath: "Pictures/${Constants.appName}",
-              skipIfExists: false,
-            );
-          }
-
           return (filePath: file.path, name: name, statusCode: 200, del: false);
         }
       });

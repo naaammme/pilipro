@@ -1,6 +1,6 @@
 import 'package:PiliPro/common/widgets/loading_widget/http_error.dart';
 import 'package:PiliPro/common/widgets/view_sliver_safe_area.dart';
-import 'package:PiliPro/pages/search/controller.dart' show DebounceStreamState;
+import 'package:PiliPro/utils/debounce_stream.dart' show DebounceStreamState;
 import 'package:PiliPro/pages/setting/models/extra_settings.dart';
 import 'package:PiliPro/pages/setting/models/model.dart';
 import 'package:PiliPro/pages/setting/models/play_settings.dart';

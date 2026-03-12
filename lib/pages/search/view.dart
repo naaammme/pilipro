@@ -318,20 +318,12 @@ class _SearchPageState extends State<SearchPage> {
                             style: IconButton.styleFrom(
                               padding: EdgeInsets.zero,
                             ),
-                            onPressed: () {
-                              enable = !enable;
-                              _searchController.recordSearchHistory.value =
-                                  enable;
-                              GStorage.setting.put(
-                                SettingBoxKey.recordSearchHistory,
-                                enable,
-                              );
-                            },
+                            onPressed: _searchController.toggleRecordSearchHistory,
                           ),
                         );
                       },
                     ),
-                    _exportHsitory(theme),
+                    _exportHistory(theme),
                     const Spacer(),
                     SizedBox(
                       height: 34,
@@ -359,21 +351,33 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ),
               ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                direction: Axis.horizontal,
-                textDirection: TextDirection.ltr,
-                children: _searchController.historyList
-                    .map(
-                      (item) => SearchText(
-                        text: item,
-                        onTap: _searchController.onClickKeyword,
-                        onLongPress: _searchController.onLongSelect,
-                      ),
-                    )
-                    .toList(),
+              Obx(
+                () => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  direction: Axis.horizontal,
+                  textDirection: TextDirection.ltr,
+                  children: _searchController.displayedHistory
+                      .map(
+                        (item) => SearchText(
+                          text: item,
+                          onTap: _searchController.onClickKeyword,
+                          onLongPress: _searchController.onLongSelect,
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
+              if (_searchController.hasMore)
+                Center(
+                  child: TextButton(
+                    onPressed: _searchController.loadMore,
+                    child: Text(
+                      '加载更多',
+                      style: TextStyle(color: secondary),
+                    ),
+                  ),
+                ),
             ],
           ),
         );
@@ -381,7 +385,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _exportHsitory(ThemeData theme) => SizedBox(
+  Widget _exportHistory(ThemeData theme) => SizedBox(
     width: 34,
     height: 34,
     child: IconButton(
@@ -399,8 +403,7 @@ class _SearchPageState extends State<SearchPage> {
         fromJson: (json) {
           try {
             final list = List<String>.from(json);
-            _searchController.historyList.value = list;
-            GStorage.historyWord.put('cacheList', list);
+            _searchController.importHistory(list);
             return true;
           } catch (e) {
             SmartDialog.showToast(e.toString());

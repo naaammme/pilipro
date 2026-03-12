@@ -239,7 +239,8 @@ abstract class LocalCacheKey {
       biliTicketExpireAt = 'biliTicketExpireAt',  // x-bili-ticket 过期时间戳(秒)
       deviceGuid = 'deviceGuid',  // 设备GUID（用于生成buvid的种子）
       deviceMac = 'deviceMac',    // 设备MAC地址
-      deviceAndroidId = 'deviceAndroidId';  // Android ID
+      deviceAndroidId = 'deviceAndroidId',  // Android ID
+      isGuestMode = 'isGuestMode';  // 是否为游客模式
 }
 
 abstract class VideoBoxKey {
