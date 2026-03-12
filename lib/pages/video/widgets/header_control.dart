@@ -948,9 +948,13 @@ class HeaderControlState extends State<HeaderControl> {
     // 当前选中的解码格式
     final VideoDecodeFormatType currentDecodeFormats =
         videoDetailCtr.currentDecodeFormats;
-    final VideoItem firstVideo = videoDetailCtr.firstVideo;
+    final VideoItem? firstVideo = videoDetailCtr.firstVideo;
     // 当前视频可用的解码格式
     final List<FormatItem> videoFormat = videoInfo.supportFormats!;
+    if (firstVideo == null) {
+      SmartDialog.showToast('视频信息未加载');
+      return;
+    }
     final List<String>? list = videoFormat
         .firstWhere((FormatItem e) => e.quality == firstVideo.quality.code)
         .codecs;

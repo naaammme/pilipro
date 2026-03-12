@@ -23,8 +23,8 @@ import 'package:PiliPro/plugin/pl_player/controller.dart';
 import 'package:PiliPro/plugin/pl_player/models/play_status.dart';
 import 'package:PiliPro/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPro/plugin/pl_player/view.dart';
-import 'package:PiliPro/services/live_pip_overlay_service.dart';
-import 'package:PiliPro/services/pip_overlay_service.dart';
+import 'package:PiliPro/services/live_pip_controller.dart';
+import 'package:PiliPro/services/pip_controller.dart';
 import 'package:PiliPro/services/service_locator.dart';
 import 'package:PiliPro/utils/duration_utils.dart';
 import 'package:PiliPro/utils/extension.dart';
@@ -68,7 +68,7 @@ class _LiveRoomPageState extends State<LiveRoomPage>
 
     // 检查是否是从当前直播间的小窗返回
     // 注意：Get.arguments 必须能正确获取到 roomId
-    final isReturningFromPip = LivePipOverlayService.isCurrentLiveRoom(
+    final isReturningFromPip = LivePipController.to.isCurrentLiveRoom(
       Get.arguments as int,
     );
 
@@ -76,15 +76,15 @@ class _LiveRoomPageState extends State<LiveRoomPage>
       // 是从小窗返回，我们在这里停止并移除小窗
       // 因为新的 LiveRoomPage 马上会接管播放器
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        LivePipOverlayService.stopLivePip(callOnClose: false);
+        LivePipController.to.hide(callOnClose: false);
       });
     } else {
       // 不是从小窗返回，正常清理
-      if (LivePipOverlayService.isInPipMode) {
-        LivePipOverlayService.stopLivePip(callOnClose: false);
+      if (LivePipController.to.isShowing.value) {
+        LivePipController.to.hide(callOnClose: false);
       }
-      if (PipOverlayService.isInPipMode) {
-        PipOverlayService.stopPip(callOnClose: true);
+      if (PipController.to.isShowing.value) {
+        PipController.to.hide(callOnClose: true);
       }
     }
 
@@ -213,11 +213,12 @@ class _LiveRoomPageState extends State<LiveRoomPage>
     _liveRoomController.startLiveMsg();
 
     // 启动小窗
-    LivePipOverlayService.startLivePip(
-      context: context,
-      heroTag: heroTag,
-      roomId: _liveRoomController.roomId,
-      plPlayerController: plPlayerController,
+    LivePipController.to.show(
+      liveData: LivePipData(
+        heroTag: heroTag,
+        roomId: _liveRoomController.roomId,
+        plPlayerController: plPlayerController,
+      ),
       onClose: () {
         // 关闭小窗时，停止播放
         _liveRoomController
@@ -256,8 +257,8 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   void dispose() {
     // 只有在不是小窗模式时才清理小窗
     if (!_liveRoomController.isInPipMode.value &&
-        LivePipOverlayService.isCurrentLiveRoom(_liveRoomController.roomId)) {
-      LivePipOverlayService.stopLivePip(callOnClose: false);
+        LivePipController.to.isCurrentLiveRoom(_liveRoomController.roomId)) {
+      LivePipController.to.hide(callOnClose: false);
     }
 
     videoPlayerServiceHandler?.onVideoDetailDispose(heroTag);

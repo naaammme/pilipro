@@ -17,7 +17,7 @@ import 'package:PiliPro/pages/danmaku/dnamaku_model.dart';
 import 'package:PiliPro/pages/live_room/send_danmaku/view.dart';
 import 'package:PiliPro/plugin/pl_player/controller.dart';
 import 'package:PiliPro/plugin/pl_player/models/data_source.dart';
-import 'package:PiliPro/services/live_pip_overlay_service.dart';
+import 'package:PiliPro/services/live_pip_controller.dart';
 import 'package:PiliPro/services/service_locator.dart';
 import 'package:PiliPro/tcp/live.dart';
 import 'package:PiliPro/utils/accounts.dart';
@@ -104,7 +104,7 @@ class LiveRoomController extends GetxController {
     mid = account.mid;
 
     // 检查是否是从当前直播间的小窗返回
-    isReturningFromPip = LivePipOverlayService.isCurrentLiveRoom(roomId);
+    isReturningFromPip = LivePipController.to.isCurrentLiveRoom(roomId);
 
     if (!isReturningFromPip) {
       // 只有在不是从小窗返回时，才初始化播放器

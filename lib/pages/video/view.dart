@@ -41,8 +41,8 @@ import 'package:PiliPro/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPro/plugin/pl_player/models/play_status.dart';
 import 'package:PiliPro/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPro/plugin/pl_player/view.dart';
-import 'package:PiliPro/services/live_pip_overlay_service.dart';
-import 'package:PiliPro/services/pip_overlay_service.dart';
+import 'package:PiliPro/services/live_pip_controller.dart';
+import 'package:PiliPro/services/pip_controller.dart';
 import 'package:PiliPro/services/service_locator.dart';
 import 'package:PiliPro/services/shutdown_timer_service.dart';
 import 'package:PiliPro/utils/accounts.dart';
@@ -132,19 +132,19 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
     final bool fromPip = Get.arguments['fromPip'] ?? false;
 
     // 如果视频 PiP 正在显示
-    if (PipOverlayService.isInPipMode) {
+    if (PipController.to.isShowing.value) {
       if (fromPip) {
-        // 如果是从PiP点击返回的，我们“领养”这个PiP，立即停止Overlay，但不触发onClose
-        PipOverlayService.stopPip(callOnClose: false, immediate: true);
+        // 如果是从PiP点击返回的，直接隐藏PiP，不触发onClose
+        PipController.to.hide(callOnClose: false);
       } else {
         // 否则（例如打开了另一个视频），正常停止旧的PiP
-        PipOverlayService.stopPip(callOnClose: false);
+        PipController.to.hide(callOnClose: false);
       }
     }
 
     // 如果直播 PiP 正在显示，也要关闭它
-    if (LivePipOverlayService.isInPipMode) {
-      LivePipOverlayService.stopLivePip(callOnClose: true);
+    if (LivePipController.to.isShowing.value) {
+      LivePipController.to.hide(callOnClose: true);
     }
 
     PlPlayerController.setPlayCallBack(playCallBack);
@@ -186,30 +186,38 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
 
       // 强制显示控件
       plPlayerController!.controls = true;
-      // 此时播放器已在运行，但 VideoDetailController 的 data 和 currentVideoQa 等 late 变量
-      // 并未初始化。我们必须调用 queryVideoUrl 来获取它们，以渲染播放器控件 (如画质列表)。
 
-      // 先设置状态为加载中，以防 build 方法提前执行
-      videoDetailController.videoState.value = LoadingState.loading();
+      // 使用缓存数据，避免重复请求API
+      final cachedData = PipController.to.cachedData.value;
+      if (cachedData != null) {
+        // 直接使用缓存数据
+        videoDetailController.data = cachedData.data;
+        videoDetailController.currentVideoQa = Rx(cachedData.videoQa);
+        videoDetailController.currentAudioQa = cachedData.audioQa;
+        videoDetailController.currentDecodeFormats = cachedData.decodeFormat;
+        videoDetailController.videoUrl = cachedData.videoUrl;
+        videoDetailController.audioUrl = cachedData.audioUrl;
 
-      // 再调用 queryVideoUrl，并传入 reinitializePlayer: false
-      // 这会获取所有数据 (data, currentVideoQa...) 但跳过 playerInit()
-      videoDetailController
-          .queryVideoUrl(
-            defaultST: videoDetailController.playedTime, // 使用 PiP 的当前进度
-            fromReset: true, // 保持此参数，用于 SponsorBlock 等逻辑
-            reinitializePlayer: false, // 静止播放器被重新初始化
-          )
-          .then((_) {
-            // 数据获取成功后，将状态设为 Success，触发 UI 渲染
-            if (videoDetailController.videoState.value is! Error) {
-              videoDetailController.videoState.value = const Success(null);
-            }
-          })
-          .catchError((e) {
-            // 处理获取数据时可能发生的错误
-            videoDetailController.videoState.value = Error(e.toString());
-          });
+        // 设置状态为成功
+        videoDetailController.videoState.value = const Success(null);
+      } else {
+        // 如果没有缓存（不应该发生），回退到请求API
+        videoDetailController.videoState.value = LoadingState.loading();
+        videoDetailController
+            .queryVideoUrl(
+              defaultST: videoDetailController.playedTime,
+              fromReset: true,
+              reinitializePlayer: false,
+            )
+            .then((_) {
+              if (videoDetailController.videoState.value is! Error) {
+                videoDetailController.videoState.value = const Success(null);
+              }
+            })
+            .catchError((e) {
+              videoDetailController.videoState.value = Error(e.toString());
+            });
+      }
     } else {
       // 正常加载
       videoSourceInit();
@@ -420,7 +428,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
     // 只在非 PiP 模式下销毁播放器
     if (!videoDetailController.plPlayerController.isCloseAll &&
         !_isEnteringPipMode &&
-        !PipOverlayService.isInPipMode) {
+        !PipController.to.isShowing.value) {
       videoPlayerServiceHandler?.onVideoDetailDispose(heroTag);
       if (plPlayerController != null) {
         videoDetailController.makeHeartBeat();
@@ -463,7 +471,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
         ..removeStatusLister(playerListener)
         ..removePositionListener(positionListener);
       // 只在非 PiP 模式下暂停播放
-      if (!_isEnteringPipMode && !PipOverlayService.isInPipMode) {
+      if (!_isEnteringPipMode && !PipController.to.isShowing.value) {
         plPlayerController!.pause();
       }
     }
@@ -783,13 +791,12 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                                                     .onSurface,
                                               ),
                                               onPressed: () {
-                                                videoDetailController
-                                                    .plPlayerController
-                                                  ..isCloseAll = true
-                                                  ..dispose();
-                                                Get.until(
-                                                  (route) => route.isFirst,
-                                                );
+                                                if (!_tryEnterPipMode()) {
+                                                  videoDetailController.plPlayerController
+                                                    ..isCloseAll = true
+                                                    ..dispose();
+                                                }
+                                                Get.until((route) => route.isFirst);
                                               },
                                             ),
                                           ),
@@ -1316,9 +1323,11 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                         ],
                       ),
                       onPressed: () {
-                        videoDetailController.plPlayerController
-                          ..isCloseAll = true
-                          ..dispose();
+                        if (!_tryEnterPipMode()) {
+                          videoDetailController.plPlayerController
+                            ..isCloseAll = true
+                            ..dispose();
+                        }
                         Get.until((route) => route.isFirst);
                       },
                     ),
@@ -2237,84 +2246,75 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
     }
   }
 
+  /// 尝试进入 PiP 模式，返回 true 表示成功进入
+  bool _tryEnterPipMode() {
+    if (!Pref.enableInAppPip ||
+        plPlayerController?.playerStatus.playing != true ||
+        PipController.to.isShowing.value) {
+      return false;
+    }
+
+    _isEnteringPipMode = true;
+
+    final videoData = PipVideoData(
+      data: videoDetailController.data,
+      videoQa: videoDetailController.currentVideoQa.value,
+      audioQa: videoDetailController.currentAudioQa,
+      decodeFormat: videoDetailController.currentDecodeFormats,
+      videoUrl: videoDetailController.videoUrl,
+      audioUrl: videoDetailController.audioUrl,
+      currentPosition: plPlayerController?.position.value,
+      bvid: videoDetailController.bvid,
+      aid: videoDetailController.aid,
+      cid: videoDetailController.cid.value,
+      videoType: videoDetailController.videoType,
+      cover: videoDetailController.cover.value,
+      heroTag: heroTag,
+      epId: videoDetailController.epId,
+      seasonId: videoDetailController.seasonId,
+      pgcType: videoDetailController.pgcType,
+      pgcItem: videoDetailController.isUgc ? null : pgcIntroController.pgcItem,
+    );
+
+    PipController.to.show(
+      videoPlayerBuilder: (isPipMode) => plPlayer(
+        width: 200,
+        height: 112,
+        isPipMode: isPipMode,
+      ),
+      videoData: videoData,
+      onClose: () {
+        _isEnteringPipMode = false;
+        plPlayerController?.pause();
+        plPlayerController?.dispose();
+      },
+      onTapToReturn: () {
+        _isEnteringPipMode = false;
+        Get.toNamed('/videoV', arguments: {
+          'bvid': videoData.bvid,
+          'aid': videoData.aid,
+          'cid': videoData.cid,
+          'videoType': videoData.videoType,
+          'cover': videoData.cover,
+          'heroTag': videoData.heroTag,
+          'fromPip': true,
+          'progress': videoData.currentPosition?.inMilliseconds,
+          'epId': videoData.epId,
+          'seasonId': videoData.seasonId,
+          'pgcType': videoData.pgcType,
+          'pgcItem': videoData.pgcItem,
+        });
+      },
+    );
+    return true;
+  }
+
   void _onPopInvokedWithResult(bool didPop, result) {
     // 当页面已经被 pop 时
     if (didPop) {
       // 使用 VideoStackManager 检查路由栈中是否还有其他视频页
-      final bool isReturningToVideo = VideoStackManager.isReturningToVideo();
-
-      // 如果视频正在播放且开关已开启，启动 PiP
-      if (Pref.enableInAppPip &&
-          plPlayerController?.playerStatus.playing == true &&
-          !PipOverlayService.isInPipMode &&
-          !isReturningToVideo) {
-        // 添加 !isReturningToVideo 条件
-        // 设置标志，防止 dispose 销毁播放器
-        _isEnteringPipMode = true;
-
-        // 使用全局 navigator 的 overlay
-        final overlayContext = Get.overlayContext;
-        if (overlayContext != null) {
-          PipOverlayService.startPip(
-            context: overlayContext,
-            videoPlayerBuilder: (isPipMode) {
-              return plPlayer(
-                width: 200,
-                height: 112,
-                isPipMode: isPipMode,
-              );
-            },
-            onClose: () {
-              // 关闭时暂停并销毁播放器
-              _isEnteringPipMode = false;
-              plPlayerController?.pause();
-              plPlayerController?.dispose();
-            },
-
-            onTapToReturn: () {
-              // 1. 保存所有必要的上下文
-              final currentPosition = plPlayerController?.position.value;
-              final savedBvid = videoDetailController.bvid;
-              final savedAid = videoDetailController.aid;
-              final savedCid = videoDetailController.cid.value;
-              final savedVideoType = videoDetailController.videoType;
-              final savedCover = videoDetailController.cover.value;
-              final savedHeroTag = heroTag; // 复用 heroTag
-              // 保存 PGC 相关参数
-              final savedEpId = videoDetailController.epId;
-              final savedSeasonId = videoDetailController.seasonId;
-              final savedPgcType = videoDetailController.pgcType;
-              // 保存 PGC 详情数据(如果是番剧/电影)
-              final savedPgcItem = videoDetailController.isUgc
-                  ? null
-                  : pgcIntroController.pgcItem;
-
-              // 2. 重置标志
-              _isEnteringPipMode = false;
-
-              // 3. 打开视频详情页, 复用 heroTag 并添加 fromPip 标志
-              Get.toNamed(
-                '/videoV',
-                arguments: {
-                  'bvid': savedBvid,
-                  'aid': savedAid,
-                  'cid': savedCid,
-                  'videoType': savedVideoType,
-                  'cover': savedCover,
-                  'heroTag': savedHeroTag,
-                  'fromPip': true,
-                  // 'seek' 已被 'progress' 替代，在 controller 中处理
-                  'progress': currentPosition?.inMilliseconds,
-                  // PGC 相关参数
-                  'epId': savedEpId,
-                  'seasonId': savedSeasonId,
-                  'pgcType': savedPgcType,
-                  'pgcItem': savedPgcItem,
-                },
-              );
-            },
-          );
-        }
+      if (!VideoStackManager.isReturningToVideo()) {
+        _tryEnterPipMode();
       }
       return;
     }

@@ -11,6 +11,10 @@ import 'package:PiliPro/plugin/pl_player/controller.dart';
 import 'package:PiliPro/router/app_pages.dart';
 import 'package:PiliPro/services/account_service.dart';
 import 'package:PiliPro/services/logger.dart';
+import 'package:PiliPro/services/pip_controller.dart';
+import 'package:PiliPro/services/pip_floating_widget.dart';
+import 'package:PiliPro/services/live_pip_controller.dart';
+import 'package:PiliPro/services/live_pip_floating_widget.dart';
 import 'package:PiliPro/services/service_locator.dart';
 import 'package:PiliPro/utils/app_scheme.dart';
 import 'package:PiliPro/utils/cache_manage.dart';
@@ -53,6 +57,8 @@ void main() async {
     exit(0);
   }
   Get.lazyPut(AccountService.new);
+  Get.put(PipController()); // 初始化全局 PiP 控制器
+  Get.put(LivePipController()); // 初始化全局直播 PiP 控制器
   HttpOverrides.global = _CustomHttpOverrides();
 
   CacheManage.autoClearCache();
@@ -311,7 +317,7 @@ class MyApp extends StatelessWidget {
                   Get.back();
                 }
 
-                return Focus(
+                child = Focus(
                   canRequestFocus: false,
                   onKeyEvent: (_, event) {
                     if (event.logicalKey == LogicalKeyboardKey.escape &&
@@ -327,7 +333,19 @@ class MyApp extends StatelessWidget {
                   ),
                 );
               }
-              return child;
+
+              // 注入全局 PiP Stack
+              return Stack(
+                children: [
+                  child,
+                  Obx(() => PipController.to.isShowing.value
+                      ? const PipFloatingWidget()
+                      : const SizedBox.shrink()),
+                  Obx(() => LivePipController.to.isShowing.value
+                      ? const LivePipFloatingWidget()
+                      : const SizedBox.shrink()),
+                ],
+              );
             },
           ),
           navigatorObservers: [

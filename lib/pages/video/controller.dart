@@ -45,7 +45,7 @@ import 'package:PiliPro/plugin/pl_player/controller.dart';
 import 'package:PiliPro/plugin/pl_player/models/data_source.dart';
 import 'package:PiliPro/plugin/pl_player/models/heart_beat_type.dart';
 import 'package:PiliPro/plugin/pl_player/models/play_status.dart';
-import 'package:PiliPro/services/pip_overlay_service.dart';
+import 'package:PiliPro/services/pip_controller.dart';
 import 'package:PiliPro/utils/accounts.dart';
 import 'package:PiliPro/utils/duration_utils.dart';
 import 'package:PiliPro/utils/page_utils.dart';
@@ -111,8 +111,8 @@ class VideoDetailController extends GetxController
   PlPlayerController plPlayerController = PlPlayerController.getInstance()
     ..setCurrBrightness(-1.0);
 
-  late VideoItem firstVideo;
-  late AudioItem firstAudio;
+  VideoItem? firstVideo;
+  AudioItem? firstAudio;
   String? videoUrl;
   String? audioUrl;
   Duration? defaultST;
@@ -168,8 +168,8 @@ class VideoDetailController extends GetxController
   }
 
   void setVideoHeight() {
-    final isVertical = firstVideo.width != null && firstVideo.height != null
-        ? firstVideo.width! < firstVideo.height!
+    final isVertical = firstVideo?.width != null && firstVideo?.height != null
+        ? firstVideo!.width! < firstVideo!.height!
         : false;
     if (!scrollCtr.hasClients) {
       videoHeight = isVertical ? maxVideoHeight : minVideoHeight;
@@ -1073,7 +1073,7 @@ class VideoDetailController extends GetxController
       ..buffered.value = Duration.zero;
 
     final video = findVideoByQa(currentVideoQa.value.code);
-    if (firstVideo.codecs != video.codecs) {
+    if (firstVideo?.codecs != video.codecs) {
       currentDecodeFormats = VideoDecodeFormatType.fromString(video.codecs!);
     }
     firstVideo = video;
@@ -1144,8 +1144,8 @@ class VideoDetailController extends GetxController
         }
         setSubtitle(vttSubtitlesIndex.value);
       },
-      width: firstVideo.width,
-      height: firstVideo.height,
+      width: firstVideo?.width,
+      height: firstVideo?.height,
       volume: volume ?? this.volume,
     );
 
