@@ -180,12 +180,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       }
     });
 
-    // 监听缓冲状态，延迟显示加载动画以提升用户体验
+
     plPlayerController.isBuffering.listen((bool isBuffering) {
       if (isBuffering && plPlayerController.playerStatus.playing) {
-        // 延迟 300ms 显示加载动画，短暂的缓冲不会触发
+        // 延迟 500ms 显示加载动画，避免 seek 时频繁闪现转圈图标
         _loadingDelayTimer?.cancel();
-        _loadingDelayTimer = Timer(const Duration(milliseconds: 300), () {
+        _loadingDelayTimer = Timer(const Duration(milliseconds: 500), () {
           if (mounted && plPlayerController.isBuffering.value) {
             _showLoadingIndicator.value = true;
           }
