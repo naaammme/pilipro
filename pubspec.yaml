@@ -22,7 +22,7 @@ version: 2.0.0+45
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
-  flutter: 3.41.0
+  flutter: ">=3.41.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -41,22 +41,22 @@ dependencies:
   # 动态取色
   dynamic_color: ^1.8.1
 
-  get: ^4.6.6
+  get: ^4.7.3
 
   # 网络
-  dio: ^5.7.0
-  cookie_jar: ^4.0.8
+  dio: ^5.9.2
+  cookie_jar: ^4.0.9
   connectivity_plus: ^7.0.0
-  dio_http2_adapter: ^2.5.3
+  dio_http2_adapter: ^2.7.0
 
   # 图片
   cached_network_image: ^3.4.1
   # extended_image: ^9.0.7
-  saver_gallery: ^4.0.1
+  saver_gallery: ^4.1.0
 
   # QRCode
   # qr_flutter: ^4.1.0
-  pretty_qr_code: ^3.3.0
+  pretty_qr_code: ^3.6.0
 
   # 存储
   path_provider: ^2.1.5
@@ -64,7 +64,7 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # 设备信息
-  device_info_plus: ^12.1.0
+  device_info_plus: ^12.3.0
   # 权限
   # permission_handler: ^12.0.0+1
   permission_handler_apple: ^9.4.7
@@ -95,7 +95,7 @@ dependencies:
       url: https://github.com/bggRGjQaUbCoE/material_design_icons_flutter.git
       ref: const
   # toast
-  flutter_smart_dialog: ^4.9.8+5
+  flutter_smart_dialog: ^4.9.8+9
   # 下滑关闭
   # dismissible_page: ^1.0.2
   # custom_sliding_segmented_control: ^1.8.4
@@ -130,13 +130,13 @@ dependencies:
 
   # 获取appx信息
   package_info_plus: ^9.0.0
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
   # 防抖节流
   easy_debounce: ^2.0.3
   # 高帧率
   flutter_displaymode: ^0.7.0
   # scheme跳转
-  app_links: ^6.3.2
+  app_links: ^6.4.1
   # 弹幕
   # ns_danmaku:
   #   git:
@@ -162,10 +162,10 @@ dependencies:
   flutter_html: ^3.0.0-beta.2
   # 极验
   gt3_flutter_plugin: ^0.1.0
-  uuid: ^4.5.1
+  uuid: ^4.5.3
   # scrollable_positioned_list: ^0.3.8
   # nil: ^1.1.1
-  catcher_2: ^2.1.0
+  catcher_2: ^2.1.6
   logger: ^2.5.0
   #瀑布流
   waterfall_flow: ^3.1.0
@@ -179,15 +179,15 @@ dependencies:
       url: https://github.com/bggRGjQaUbCoE/flutter_chat_packages.git
       ref: main
       path: packages/chat_bottom_container
-  image_picker: ^1.1.2
+  image_picker: ^1.2.1
   intl: ^0.20.2
-  archive: ^4.0.0
-  flutter_svg: ^2.0.14
+  archive: ^4.0.9
+  flutter_svg: ^2.2.4
   image_cropper: ^11.0.0
   #解压直播消息
   brotli: ^0.6.0
   expandable: ^5.0.1
-  flex_seed_scheme: ^3.4.1
+  flex_seed_scheme: ^4.0.1
   live_photo_maker: ^0.0.6
   fl_chart: ^1.0.0
   synchronized: ^3.3.0
@@ -204,7 +204,9 @@ dependencies:
       ref: master
   crclib: ^3.0.0
   web_socket_channel: ^3.0.3
-  image: ^4.5.4
+  # image: ^4.8.0 # 作为 image_cropper 的传递依赖自动引入
+  # dlna_dart: ^0.1.0 # DLNA投屏功能 
+  # battery_plus: ^7.0.0 # 电池信息监控 
   # window_manager: ^0.5.1
   window_manager:
     git:
@@ -221,7 +223,7 @@ dependencies:
     git:
       url: https://github.com/bggRGjQaUbCoE/super_sliver_list.git
       ref: mod
-  xml: ^6.6.1
+  # xml: ^6.6.1 # 作为 image 的传递依赖自动引入
 
   vector_math: any
   fixnum: any
@@ -235,6 +237,7 @@ dependencies:
   flutter_cache_manager: any
   http2: any
   screen_retriever: any
+  characters: any # Unicode字符处理 
 
 dependency_overrides:
   # screen_brightness: ^2.1.
