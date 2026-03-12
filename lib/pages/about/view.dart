@@ -46,6 +46,7 @@ class _AboutPageState extends State<AboutPage> {
   final currentVersion =
       '${BuildConfig.versionName}+${BuildConfig.versionCode}';
   RxString cacheSize = ''.obs;
+  static const qqGroupNumber = '924787418';
 
   late int _pressCount = 0;
 
@@ -65,6 +66,11 @@ class _AboutPageState extends State<AboutPage> {
     cacheSize.value = CacheManage.formatSize(
       await CacheManage.loadApplicationCache(),
     );
+  }
+
+  void _copyQQGroup() {
+    Utils.copyText(qqGroupNumber);
+    SmartDialog.showToast('QQ群号已复制');
   }
 
   @override
@@ -201,6 +207,18 @@ Commit Hash: ${BuildConfig.commitHash}''',
             ),
           ),
           ListTile(
+            onTap: _copyQQGroup,
+            onLongPress: _copyQQGroup,
+            onSecondaryTap: Utils.isMobile ? null : _copyQQGroup,
+            leading: const Icon(MdiIcons.qqchat),
+            title: const Text('加入QQ群'),
+            subtitle: Text('点击复制群号', style: subTitleStyle),
+            trailing: Text(
+              qqGroupNumber,
+              style: subTitleStyle,
+            ),
+          ),
+          ListTile(
             onTap: () => Get.toNamed('/logs'),
             onLongPress: LoggerUtils.clearLogs,
             onSecondaryTap: Utils.isMobile ? null : LoggerUtils.clearLogs,
@@ -296,7 +314,7 @@ Commit Hash: ${BuildConfig.commitHash}''',
                           ...diag.entries.map((e) => Padding(
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 13)),
-                          )).toList(),
+                          )),
                         ],
                       ),
                     ),

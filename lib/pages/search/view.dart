@@ -10,8 +10,6 @@ import 'package:PiliPro/pages/search/widgets/hot_keyword.dart';
 import 'package:PiliPro/pages/search/widgets/search_text.dart';
 import 'package:PiliPro/utils/em.dart' show Em;
 import 'package:PiliPro/utils/extension.dart';
-import 'package:PiliPro/utils/storage.dart';
-import 'package:PiliPro/utils/storage_key.dart';
 import 'package:PiliPro/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

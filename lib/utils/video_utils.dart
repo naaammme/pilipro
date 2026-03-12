@@ -4,7 +4,6 @@ import 'package:PiliPro/models/video/play/url.dart';
 import 'package:PiliPro/models_new/live/live_room_play_info/codec.dart';
 import 'package:PiliPro/utils/extension.dart';
 import 'package:PiliPro/utils/storage_pref.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 
 abstract final class VideoUtils {
   static String cdnService = Pref.defaultCDNService;
